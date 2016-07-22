@@ -1,0 +1,21 @@
+{
+    "name": "daverandom/shitwork",
+    "description": "A shit non-framework",
+    "minimum-stability": "stable",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Chris Wright",
+            "email": "im.sorry@daverandom.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "nikic/fast-route": "~1.0",
+        "rdlowrey/auryn": "^1.1"
+    },
+    "autoload": {
+        "psr-4": {"Shitwork\\": "src/"},
+        "files": ["src/functions.php"]
+    }
+}

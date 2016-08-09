@@ -18,3 +18,8 @@ function bootstrap(): Injector
 
     return $injector;
 }
+
+function h($raw, int $flags = ENT_COMPAT): string
+{
+    return htmlspecialchars(trim((string)$raw), $flags | ENT_COMPAT, 'utf-8');
+}

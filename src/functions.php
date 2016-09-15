@@ -4,9 +4,9 @@ namespace Shitwork;
 
 use Auryn\Injector;
 
-function bootstrap(): Injector
+function bootstrap(Injector $injector = null): Injector
 {
-    $injector = new Injector();
+    $injector = $injector ?? new Injector();
     $injector->share($injector); // yolo
 
     $injector->share(Request::class);

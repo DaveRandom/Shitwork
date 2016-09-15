@@ -23,3 +23,10 @@ function h($raw, int $flags = ENT_COMPAT): string
 {
     return htmlspecialchars(trim((string)$raw), $flags | ENT_COMPAT, 'utf-8');
 }
+
+function parse_bool($var)
+{
+    return is_string($var)
+        ? !preg_match('/^0|no|false|off$/i', $var)
+        : (bool)$var;
+}

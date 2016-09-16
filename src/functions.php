@@ -4,9 +4,26 @@ namespace Shitwork;
 
 use Auryn\Injector;
 
+function injector(Injector $injector = null): Injector
+{
+    static $persistent;
+
+    if (isset($injector)) {
+        $persistent = $injector;
+        $persistent->share($persistent);
+    }
+
+    if (!isset($persistent)) {
+        $persistent = new Injector();
+        $persistent->share($persistent);
+    }
+
+    return $persistent ?? $persistent = new Injector();
+}
+
 function bootstrap(Injector $injector = null): Injector
 {
-    $injector = $injector ?? new Injector();
+    $injector = injector($injector);
     $injector->share($injector); // yolo
 
     $injector->share(Request::class);

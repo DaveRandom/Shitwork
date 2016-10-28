@@ -15,8 +15,6 @@ class Template
     private $before;
     private $after;
 
-    private $currentRequirePath;
-
     public function __construct(string $path, array $before = [], array $after = [], array $vars = [])
     {
         if (!is_file($path)) {
@@ -31,27 +29,19 @@ class Template
         $this->after = $after;
     }
 
-    private function require($path, $vars)
+    private function require()
     {
-        $this->currentRequirePath = $path;
-        extract($vars);
-
-        if (!isset($vars['path'])) {
-            unset($path);
-        }
-        if (!isset($vars['vars'])) {
-            unset($vars);
-        }
+        extract(func_get_arg(1));
 
         /** @noinspection PhpIncludeInspection */
-        require $this->currentRequirePath;
+        require func_get_arg(0);
     }
 
     public function render(array $vars = null, int $flags = 0)
     {
-        if ($vars) {
-            $vars = array_merge($this->vars, $vars);
-        }
+        $vars = $vars
+            ? array_merge($this->vars, $vars)
+            : $this->vars;
 
         if (!($flags & self::NO_BEFORE)) {
             foreach ($this->before as $before) {

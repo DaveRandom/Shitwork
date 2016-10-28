@@ -2,7 +2,7 @@
 
 namespace Shitwork;
 
-class InvalidTemplateException extends \Exception {}
+use Shitwork\Exceptions\InvalidTemplateException;
 
 class Template
 {

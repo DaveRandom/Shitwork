@@ -1,8 +1,8 @@
 <?php declare(strict_types = 1);
 
-namespace Shitwork;
+namespace Shitwork\Exceptions;
 
-class BadRequestException extends \RuntimeException
+class BadRequestException extends Exception
 {
     public function __construct(string $message, \Throwable $previous = null)
     {

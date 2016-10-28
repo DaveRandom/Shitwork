@@ -6,10 +6,9 @@ use Auryn\Injector;
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
 use function FastRoute\simpleDispatcher;
-
-class InvalidRouteException extends \Exception {}
-class RouteNotFoundException extends \Exception {}
-class RouteMethodNotAllowedException extends \Exception {}
+use Shitwork\Exceptions\InvalidRouteException;
+use Shitwork\Exceptions\RouteMethodNotAllowedException;
+use Shitwork\Exceptions\RouteNotFoundException;
 
 class Router
 {

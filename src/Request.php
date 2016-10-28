@@ -47,6 +47,11 @@ class Request
     /**
      * @var string
      */
+    private $absoluteURI;
+
+    /**
+     * @var string
+     */
     private $rawURI;
 
     /**
@@ -121,6 +126,8 @@ class Request
 
         $this->secure = !empty($_SERVER['HTTPS']);
         $this->baseURI = ($this->secure ? 'https' : 'http') . '://' . $this->getHeader('Host');
+
+        $this->absoluteURI = $this->baseURI . $this->rawURI;
     }
 
     private function storeURI(string $uri)
@@ -215,6 +222,11 @@ class Request
     public function isSecure(): bool
     {
         return $this->secure;
+    }
+
+    public function getAbsoluteURI(): string
+    {
+        return $this->absoluteURI;
     }
 
     public function getRawURI(): string

@@ -30,8 +30,8 @@ class RouteTarget
         return $this->object;
     }
 
-    public function dispatch()
+    public function dispatch(...$vars)
     {
-        return call_user_func($this->callable, $this->vars);
+        return call_user_func($this->callable, $this->vars, ...$vars);
     }
 }

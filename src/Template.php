@@ -29,7 +29,7 @@ class Template
         $this->after = $after;
     }
 
-    private function require()
+    private static function require()
     {
         extract(func_get_arg(1));
 
@@ -45,15 +45,15 @@ class Template
 
         if (!($flags & self::NO_BEFORE)) {
             foreach ($this->before as $before) {
-                $this->require($before, $vars);
+                self::require($before, $vars);
             }
         }
 
-        $this->require($this->path, $vars);
+        self::require($this->path, $vars);
 
         if (!($flags & self::NO_AFTER)) {
             foreach ($this->after as $after) {
-                $this->require($after, $vars);
+                self::require($after, $vars);
             }
         }
     }

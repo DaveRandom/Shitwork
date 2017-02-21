@@ -5,7 +5,6 @@ namespace Shitwork;
 use Auryn\Injector;
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
-use function FastRoute\simpleDispatcher;
 use Shitwork\Exceptions\InvalidRouteException;
 use Shitwork\Exceptions\RouteMethodNotAllowedException;
 use Shitwork\Exceptions\RouteNotFoundException;
@@ -15,66 +14,56 @@ class Router
     private $injector;
     private $session;
     private $dispatcher;
+    private $routes;
 
-    public function __construct(Injector $injector, Session $session, array $routes)
+    /**
+     * Router constructor.
+     * @param Injector $injector
+     * @param Session $session
+     * @param Route[] $routes
+     * @uses collectRoutes
+     */
+    public function __construct(Injector $injector, Session $session, array $routes = [])
     {
         $this->injector = $injector;
         $this->session = $session;
+        $this->routes = array_values($routes);
 
-        $this->dispatcher = simpleDispatcher(function(RouteCollector $r) use($routes) {
-            foreach ($routes as $i => $route) {
-                if (!isset($route['method'], $route['pattern'])) {
-                    throw new InvalidRouteException('Invalid route at index ' . $i . ': method and pattern required');
-                }
-
-                if (isset($route['target_builder'])) {
-                    $r->addRoute($route['method'], $route['pattern'], $route['target_builder']);
-                } else if (isset($route['target_class'], $route['target_method'])) {
-                    $r->addRoute($route['method'], $route['pattern'], [
-                        'class' => $route['target_class'],
-                        'method' => $route['target_method'],
-                    ]);
-                } else {
-                    throw new InvalidRouteException('Invalid route at index ' . $i . ': no valid target');
-                }
-            }
-        });
+        $this->dispatcher = \FastRoute\simpleDispatcher((new \ReflectionObject($this))->getMethod('collectRoutes')->getClosure($this));
     }
 
-    public static function methodCallTargetBuilder($objectOrClassName, string $varName = 'method')
+    private function collectRoutes(RouteCollector $collector)
     {
-        return function(array $vars, Injector $injector) use($objectOrClassName, $varName) {
-            $target = [
-                is_object($objectOrClassName) ? $objectOrClassName : $injector->make($objectOrClassName),
-                strtr($vars[$varName], ['-' => ''])
-            ];
-
-            if (!is_callable($target)) {
-                throw new \Exception('Unknown endpoint: ' . $vars[$varName]);
+        foreach ($this->routes as $i => $route) {
+            if (!$route instanceof Route) {
+                throw new InvalidRouteException('Invalid route at index ' . $i . ': must be an instance of ' . Route::class);
             }
 
-            return $target;
-        };
+            $collector->addRoute($route->getHttpMethod(), $route->getUriPattern(), $route);
+        }
     }
 
-    public function route(Request $request): array
+    public function addRoute(Route $route)
+    {
+        $this->routes[] = $route;
+    }
+
+    public function dispatchRequest(Request $request): RouteTarget
     {
         $path = rawurldecode($request->getURIPath());
-        $route = $this->dispatcher->dispatch($request->getMethod(), $path);
+        $routeInfo = $this->dispatcher->dispatch($request->getMethod(), $path);
 
-        switch ($route[0]) {
+        switch ($routeInfo[0]) {
             case Dispatcher::NOT_FOUND:
                 throw new RouteNotFoundException('Undefined route: ' . $path, 404);
             case Dispatcher::METHOD_NOT_ALLOWED:
                 throw new RouteMethodNotAllowedException('Invalid request method for route ' . $path . ': ' . $request->getMethod(), 405);
         }
 
-        list(, $routeInfo, $vars) = $route;
+        /** @var Route $route */
+        /** @var array $vars */
+        list(, $route, $vars) = $routeInfo;
 
-        $target = is_callable($routeInfo)
-            ? $routeInfo($vars, $this->injector, $this->session, $request)
-            : [$this->injector->make($routeInfo['class']), $routeInfo['method']];
-
-        return [$target, $vars];
+        return $route->getTarget($this->injector, $vars);
     }
 }

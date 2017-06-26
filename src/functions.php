@@ -8,42 +8,38 @@ function injector(Injector $injector = null): Injector
 {
     static $persistent;
 
-    if (isset($injector)) {
-        $persistent = $injector;
-        $persistent->share($persistent);
+    if (isset($persistent)) {
+        return $persistent;
     }
 
-    if (!isset($persistent)) {
-        $persistent = new Injector();
-        $persistent->share($persistent);
-    }
-
-    return $persistent ?? $persistent = new Injector();
+    return $persistent = $injector ?? new Injector();
 }
 
 function bootstrap(Injector $injector = null): Injector
 {
-    $injector = injector($injector);
-    $injector->share($injector); // yolo
+    static $done = false;
 
-    $injector->share(Request::class);
-    $injector->share(Router::class);
-    $injector->share(ScriptCollection::class);
-    $injector->share(Session::class);
-    $injector->share(StyleCollection::class);
-    $injector->share(TemplateFetcher::class);
+    $injector = \Shitwork\injector($injector);
 
-    return $injector;
+    return $done ? $injector : $done = $injector
+        ->share($injector) // yolo
+        ->share(Request::class)
+        ->share(Router::class)
+        ->share(ScriptCollection::class)
+        ->share(Session::class)
+        ->share(StyleCollection::class)
+        ->share(TemplateFetcher::class)
+    ;
 }
 
-function h($raw, int $flags = ENT_COMPAT): string
+function h($raw, int $flags = ENT_COMPAT | ENT_HTML5): string
 {
-    return htmlspecialchars(trim((string)$raw), $flags | ENT_COMPAT, 'utf-8');
+    return \htmlspecialchars(\trim((string)$raw), $flags | ENT_COMPAT, 'utf-8');
 }
 
 function parse_bool($var)
 {
-    return is_string($var)
-        ? !preg_match('/^0|no|false|off$/i', $var)
+    return \is_string($var)
+        ? !\preg_match('/^0|no|false|off$/i', $var)
         : (bool)$var;
 }

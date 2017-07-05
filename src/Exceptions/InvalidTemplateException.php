@@ -2,4 +2,4 @@
 
 namespace Shitwork\Exceptions;
 
-class InvalidTemplateException extends Exception {}
+class InvalidTemplateException extends InternalErrorException {}

@@ -1,9 +1,10 @@
 <?php declare(strict_types = 1);
 
-namespace Shitwork;
+namespace Shitwork\Routing\Routes;
 
 use Auryn\Injector;
-use Shitwork\Exceptions\InvalidRouteException;
+use Shitwork\Routing\Exceptions\InvalidRouteException;
+use Shitwork\Routing\RouteTarget;
 
 class DynamicRoute extends Route
 {

@@ -1,13 +1,16 @@
 <?php declare(strict_types = 1);
 
-namespace Shitwork;
+namespace Shitwork\Routing;
 
 use Auryn\Injector;
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
-use Shitwork\Exceptions\InvalidRouteException;
-use Shitwork\Exceptions\RouteMethodNotAllowedException;
-use Shitwork\Exceptions\RouteNotFoundException;
+use Shitwork\Routing\Exceptions\InvalidRouteException;
+use Shitwork\Routing\Exceptions\MethodNotAllowedException;
+use Shitwork\Routing\Exceptions\NotFoundException;
+use Shitwork\Request;
+use Shitwork\Routing\Routes\Route;
+use Shitwork\Session;
 
 class Router
 {
@@ -55,9 +58,9 @@ class Router
 
         switch ($routeInfo[0]) {
             case Dispatcher::NOT_FOUND:
-                throw new RouteNotFoundException('Undefined route: ' . $path, 404);
+                throw new NotFoundException('Undefined route: ' . $path);
             case Dispatcher::METHOD_NOT_ALLOWED:
-                throw new RouteMethodNotAllowedException('Invalid request method for route ' . $path . ': ' . $request->getMethod(), 405);
+                throw new MethodNotAllowedException('Invalid request method for route ' . $path . ': ' . $request->getMethod());
         }
 
         /** @var Route $route */

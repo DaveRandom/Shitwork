@@ -3,6 +3,7 @@
 namespace Shitwork;
 
 use Auryn\Injector;
+use Shitwork\Routing\Router;
 
 function injector(Injector $injector = null): Injector
 {

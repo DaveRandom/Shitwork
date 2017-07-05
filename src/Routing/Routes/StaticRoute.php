@@ -1,9 +1,10 @@
 <?php declare(strict_types = 1);
 
-namespace Shitwork;
+namespace Shitwork\Routing\Routes;
 
 use Auryn\Injector;
-use Shitwork\Exceptions\InvalidRouteException;
+use Shitwork\Routing\Exceptions\InvalidRouteException;
+use Shitwork\Routing\RouteTarget;
 
 class StaticRoute extends Route
 {
@@ -24,7 +25,7 @@ class StaticRoute extends Route
         $target = [$object, $this->methodName];
 
         if (!is_callable($target)) {
-            throw new InvalidRouteException('Invalid route target');
+            throw new InvalidRouteException;
         }
 
         return new RouteTarget($target, $vars, $object);

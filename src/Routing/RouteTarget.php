@@ -1,6 +1,6 @@
 <?php declare(strict_types = 1);
 
-namespace Shitwork;
+namespace Shitwork\Routing;
 
 class RouteTarget
 {

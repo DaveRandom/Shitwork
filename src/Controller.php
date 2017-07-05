@@ -2,7 +2,7 @@
 
 namespace Shitwork;
 
-use Shitwork\Exceptions\RouteNotFoundException;
+use Shitwork\Routing\Exceptions\InvalidRouteException;
 
 abstract class Controller
 {
@@ -37,25 +37,25 @@ abstract class Controller
     public function __call(string $name, array $arguments)
     {
         try {
-            $comment = (new \ReflectionObject($this))
-                ->getMethod($name)
-                ->getDocComment();
+            $method = (new \ReflectionObject($this))->getMethod($name);
 
-            if ($comment === false) {
-                throw new RouteNotFoundException('Invalid route target: ' . self::class . '::' . $name);
+            if (false === $comment = $method->getDocComment()) {
+                throw new InvalidRouteException('Invalid route target: ' . self::class . '::' . $name);
             }
 
             $comment = $this->parseDocComment($comment);
 
             if (!isset($comment['jsonresponder'])) {
-                throw new RouteNotFoundException('Invalid route target: ' . self::class . '::' . $name);
+                throw new InvalidRouteException('Invalid route target: ' . self::class . '::' . $name);
             }
 
-            $this->executeJSONResponder(function() use($name, $arguments) {
-                return $this->{$name}(...$arguments);
+            $closure = $method->getClosure($this);
+
+            $this->executeJSONResponder(function() use($closure, $arguments) {
+                return $closure(...$arguments);
             });
         } catch (\ReflectionException $e) {
-            throw new RouteNotFoundException('Invalid route target: ' . self::class . '::' . $name);
+            throw new InvalidRouteException('Invalid route target: ' . self::class . '::' . $name);
         }
     }
 }

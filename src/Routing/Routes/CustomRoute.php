@@ -1,8 +1,9 @@
 <?php declare(strict_types = 1);
 
-namespace Shitwork;
+namespace Shitwork\Routing\Routes;
 
 use Auryn\Injector;
+use Shitwork\Routing\RouteTarget;
 
 class CustomRoute extends Route
 {

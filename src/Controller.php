@@ -2,8 +2,23 @@
 
 namespace Shitwork;
 
+use Shitwork\Exceptions\RouteNotFoundException;
+
 abstract class Controller
 {
+    private function parseDocComment(string $comment): array
+    {
+        $result = [];
+
+        foreach (\preg_split('#[\r\n]+#', $comment, -1, \PREG_SPLIT_NO_EMPTY) as $line) {
+            if (\preg_match('#\s\*\s*@([a-z0-9\-_]+)\s*(.*)#i', $line, $match)) {
+                $result[\strtolower($match[1])] = $match[2] ?? '';
+            }
+        }
+
+        return $result;
+    }
+
     protected function executeJSONResponder(callable $callback)
     {
         $result = ['success' => true];
@@ -16,6 +31,31 @@ abstract class Controller
         } finally {
             header('Content-Type: application/json');
             echo json_encode($result);
+        }
+    }
+
+    public function __call(string $name, array $arguments)
+    {
+        try {
+            $comment = (new \ReflectionObject($this))
+                ->getMethod($name)
+                ->getDocComment();
+
+            if ($comment === false) {
+                throw new RouteNotFoundException('Invalid route target: ' . self::class . '::' . $name);
+            }
+
+            $comment = $this->parseDocComment($comment);
+
+            if (!isset($comment['jsonresponder'])) {
+                throw new RouteNotFoundException('Invalid route target: ' . self::class . '::' . $name);
+            }
+
+            $this->executeJSONResponder(function() use($name, $arguments) {
+                return $this->{$name}(...$arguments);
+            });
+        } catch (\ReflectionException $e) {
+            throw new RouteNotFoundException('Invalid route target: ' . self::class . '::' . $name);
         }
     }
 }

@@ -4,8 +4,8 @@ namespace Shitwork\Exceptions;
 
 class InternalErrorException extends Exception
 {
-    public function __construct($message, $code = 500, \Throwable $previous = null)
+    public function __construct($message, \Throwable $previous = null)
     {
-        parent::__construct($message, $code, $previous);
+        parent::__construct($message, 500, $previous);
     }
 }

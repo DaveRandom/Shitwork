@@ -5,6 +5,15 @@ namespace Shitwork;
 use Auryn\Injector;
 use Shitwork\Routing\Router;
 
+const HTTP_ERROR_CODES = [
+    400 => 'Bad Request',
+    401 => 'Unauthorized',
+    403 => 'Forbidden',
+    404 => 'Not Found',
+    405 => 'Method Not Allowed',
+    500 => 'Internal Server Error',
+];
+
 function injector(Injector $injector = null): Injector
 {
     static $persistent;

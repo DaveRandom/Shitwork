@@ -24,13 +24,17 @@ abstract class Controller
         $result = ['success' => true];
 
         try {
-            $result = array_merge($result, (array)$callback());
+            $result = \array_merge($result, (array)$callback());
         } catch(\Exception $e) {
             $result['success'] = false;
             $result['message'] = $e->getMessage();
+
+            if (\array_key_exists($e->getCode(), HTTP_ERROR_CODES)) {
+                \header(\sprintf('HTTP/1.1 %d %s', $e->getCode(), HTTP_ERROR_CODES[$e->getCode()]));
+            }
         } finally {
-            header('Content-Type: application/json');
-            echo json_encode($result);
+            \header('Content-Type: application/json');
+            echo \json_encode($result);
         }
     }
 

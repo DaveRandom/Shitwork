@@ -53,3 +53,17 @@ function parse_bool($var)
         ? !\preg_match('/^0|no|false|off$/i', $var)
         : (bool)$var;
 }
+
+function http_response_line_from_exception(\Throwable $e, Request $request = null)
+{
+    $statusCode = \array_key_exists($e->getCode(), HTTP_ERROR_CODES)
+        ? $e->getCode()
+        : 500;
+
+    \header(\sprintf(
+        '%s/%s %d %s',
+        isset($request) ? $request->getProtocolName() : 'HTTP',
+        isset($request) ? $request->getProtocolVersion() : '1.1',
+        $statusCode, HTTP_ERROR_CODES[$statusCode]
+    ));
+}

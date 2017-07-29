@@ -32,6 +32,8 @@ class RouteTarget
 
     public function dispatch(...$vars)
     {
-        return call_user_func($this->callable, $this->vars, ...$vars);
+        $vars[] = $this->vars;
+
+        return call_user_func($this->callable, ...$vars);
     }
 }

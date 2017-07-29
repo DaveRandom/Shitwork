@@ -51,6 +51,10 @@ abstract class Controller
                 throw new InvalidRouteException('Invalid route target: ' . self::class . '::' . $name);
             }
 
+            if (!isset($comment['extravars'])) {
+                $arguments = [\array_pop($arguments)];
+            }
+
             $closure = $method->getClosure($this);
 
             $this->executeJSONResponder(function() use($closure, $arguments) {

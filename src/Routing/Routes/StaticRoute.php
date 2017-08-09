@@ -6,10 +6,11 @@ use Auryn\Injector;
 use Shitwork\Routing\Exceptions\InvalidRouteException;
 use Shitwork\Routing\RouteTarget;
 
-class StaticRoute extends Route
+final class StaticRoute extends Route
 {
     private $className;
     private $methodName;
+    private $docComments;
 
     public function __construct(string $httpMethod, string $uriPattern, string $className, string $methodName)
     {
@@ -17,6 +18,7 @@ class StaticRoute extends Route
 
         $this->className = $className;
         $this->methodName = $methodName;
+        $this->docComments = $this->getDocComments($className, $methodName);
     }
 
     public function getTarget(Injector $injector, array $vars): RouteTarget
@@ -28,6 +30,6 @@ class StaticRoute extends Route
             throw new InvalidRouteException;
         }
 
-        return new RouteTarget($target, $vars, $object);
+        return new RouteTarget($target, $vars, $object, $this->docComments);
     }
 }

@@ -8,8 +8,8 @@ class StyleCollection
 
     public function add($data)
     {
-        $this->styles[] = preg_match('/\s+/', $data)
-            ? ['body' => trim($data)]
+        $this->styles[] = \preg_match('/\s+/', $data)
+            ? ['body' => \trim($data)]
             : ['href' => $data];
     }
 

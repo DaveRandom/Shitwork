@@ -3,10 +3,10 @@
 namespace Shitwork\Routing\Routes;
 
 use Auryn\Injector;
-use Shitwork\Routing\Exceptions\InvalidRouteException;
+use Shitwork\Routing\Exceptions\NotFoundException;
 use Shitwork\Routing\RouteTarget;
 
-class DynamicRoute extends Route
+final class DynamicRoute extends Route
 {
     private $object;
     private $className;
@@ -16,7 +16,7 @@ class DynamicRoute extends Route
     {
         parent::__construct($httpMethod, $uriPattern);
 
-        if (is_object($objectOrClassName)) {
+        if (\is_object($objectOrClassName)) {
             $this->object = $objectOrClassName;
         } else {
             $this->className = (string)$objectOrClassName;
@@ -28,10 +28,10 @@ class DynamicRoute extends Route
     public function getTarget(Injector $injector, array $vars): RouteTarget
     {
         $object = $this->object ?? $injector->make($this->className);
-        $target = [$object, strtr($vars[$this->varName], ['-' => ''])];
+        $target = [$object, \strtr($vars[$this->varName], ['-' => ''])];
 
-        if (!is_callable($target)) {
-            throw new InvalidRouteException('Unknown endpoint: ' . $vars[$this->varName]);
+        if (!\is_callable($target)) {
+            throw new NotFoundException('Unknown endpoint: ' . $vars[$this->varName]);
         }
 
         return new RouteTarget($target, $vars, $object);

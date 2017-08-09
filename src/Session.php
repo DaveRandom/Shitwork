@@ -11,7 +11,7 @@ class Session implements \IteratorAggregate, \Countable, \ArrayAccess
 
     public function __construct()
     {
-        session_start();
+        \session_start();
         $this->data = $_SESSION;
     }
 
@@ -34,7 +34,7 @@ class Session implements \IteratorAggregate, \Countable, \ArrayAccess
         }
 
         $_SESSION = $this->data;
-        session_write_close();
+        \session_write_close();
         $this->data = null;
     }
 
@@ -45,7 +45,7 @@ class Session implements \IteratorAggregate, \Countable, \ArrayAccess
 
     public function count()
     {
-        return count($this->data);
+        return \count($this->data);
     }
 
     public function get($key)

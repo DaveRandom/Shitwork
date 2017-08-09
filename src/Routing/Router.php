@@ -30,7 +30,7 @@ class Router
     {
         $this->injector = $injector;
         $this->session = $session;
-        $this->routes = array_values($routes);
+        $this->routes = \array_values($routes);
 
         $this->dispatcher = \FastRoute\simpleDispatcher((new \ReflectionObject($this))->getMethod('collectRoutes')->getClosure($this));
     }
@@ -53,7 +53,7 @@ class Router
 
     public function dispatchRequest(Request $request): RouteTarget
     {
-        $path = rawurldecode($request->getURIPath());
+        $path = \rawurldecode($request->getURIPath());
         $routeInfo = $this->dispatcher->dispatch($request->getMethod(), $path);
 
         switch ($routeInfo[0]) {

@@ -5,7 +5,7 @@ namespace Shitwork\Routing\Routes;
 use Auryn\Injector;
 use Shitwork\Routing\RouteTarget;
 
-class CustomRoute extends Route
+final class CustomRoute extends Route
 {
     private $callback;
 

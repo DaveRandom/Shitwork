@@ -7,12 +7,14 @@ class RouteTarget
     private $callable;
     private $vars;
     private $object;
+    private $docComments;
 
-    public function __construct(callable $callable, array $vars, $object)
+    public function __construct(callable $callable, array $vars, $object, DocCommentSet $docComments = null)
     {
         $this->callable = $callable;
         $this->vars = $vars;
         $this->object = $object;
+        $this->docComments = $docComments;
     }
 
     public function getCallable(): callable
@@ -30,10 +32,15 @@ class RouteTarget
         return $this->object;
     }
 
+    public function getDocComments(): ?DocCommentSet
+    {
+        return $this->docComments;
+    }
+
     public function dispatch(...$vars)
     {
         $vars[] = $this->vars;
 
-        return call_user_func($this->callable, ...$vars);
+        return \call_user_func_array($this->callable, $vars);
     }
 }

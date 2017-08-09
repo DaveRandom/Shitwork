@@ -116,7 +116,7 @@ class Request
         $this->authUser = $_SERVER['PHP_AUTH_USER'] ?? null;
         $this->authPass = $_SERVER['PHP_AUTH_PW'] ?? null;
         $this->method = $_SERVER['REQUEST_METHOD'];
-        if (preg_match('#^([^/]+)/((?:\d|\.)+)$#', $_SERVER['SERVER_PROTOCOL'], $matches)) {
+        if (\preg_match('#^([^/]+)/((?:\d|\.)+)$#', $_SERVER['SERVER_PROTOCOL'], $matches)) {
             $this->protocolName = $matches[1];
             $this->protocolVersion = $matches[2];
         }
@@ -148,32 +148,32 @@ class Request
             (?=\\?|$)
         #x";
 
-        if (!preg_match($splitExpr, $uri, $matches)) {
+        if (!\preg_match($splitExpr, $uri, $matches)) {
             throw new \UnexpectedValueException('Malformed URI');
         }
 
         $ucWords = function($match) {
-            return strtoupper($match[1]) . strtolower($match[2]);
+            return \strtoupper($match[1]) . \strtolower($match[2]);
         };
 
         $this->rawURI = $uri;
         $this->uriPath = $matches['path'];
         $this->controllerName = !empty($matches['controller'])
-            ? preg_replace_callback('#(?:^|-)([a-z])([^-]*)#', $ucWords, $matches['controller'])
+            ? \preg_replace_callback('#(?:^|-)([a-z])([^-]*)#', $ucWords, $matches['controller'])
             : 'Index';
         $this->actionName = !empty($matches['action'])
-            ? preg_replace_callback('#-([a-z])([^-]*)#', $ucWords, $matches['action'])
+            ? \preg_replace_callback('#-([a-z])([^-]*)#', $ucWords, $matches['action'])
             : 'default';
         $this->pathParams = isset($matches['params']) && $matches['params'] !== ''
-            ? preg_split('#/+#', $matches['params'], -1, PREG_SPLIT_NO_EMPTY)
+            ? \preg_split('#/+#', $matches['params'], -1, PREG_SPLIT_NO_EMPTY)
             : [];
     }
 
     private function storeHeaders(array $server)
     {
         foreach ($server as $key => $value) {
-            if (strtoupper(substr($key, 0, 5)) === 'HTTP_') {
-                $this->headers[strtolower(preg_replace('#_+#', '-', substr($key, 5)))] = $value;
+            if (\strtoupper(\substr($key, 0, 5)) === 'HTTP_') {
+                $this->headers[\strtolower(\preg_replace('#_+#', '-', \substr($key, 5)))] = $value;
             }
         }
     }
@@ -344,7 +344,7 @@ class Request
 
     public function hasHeader(string $name): bool
     {
-        return isset($this->headers[strtolower($name)]);
+        return isset($this->headers[\strtolower($name)]);
     }
 
     /**
@@ -353,7 +353,7 @@ class Request
      */
     public function getHeader($name)
     {
-        return $this->headers[strtolower($name)] ?? null;
+        return $this->headers[\strtolower($name)] ?? null;
     }
 
     public function getAllHeaders(): array
@@ -384,7 +384,7 @@ class Request
 
         if (!isset($statusMessages[$code])) {
             throw new \Exception('Unknown redirect response code: ' . $code);
-        } else if (!$parts = parse_url($uri)) {
+        } else if (!$parts = \parse_url($uri)) {
             throw new \Exception('Invalid redirect target URI: ' . $uri);
         }
 
@@ -408,7 +408,7 @@ class Request
             }
         }
 
-        header(sprintf('%s/%s %d %s', $this->protocolName, $this->protocolVersion, $code, $statusMessages[$code]));
-        header(sprintf('Location: %s', $uri));
+        \header(\sprintf('%s/%s %d %s', $this->protocolName, $this->protocolVersion, $code, $statusMessages[$code]));
+        \header(\sprintf('Location: %s', $uri));
     }
 }

@@ -55,10 +55,8 @@ abstract class Controller
                 $arguments = [\array_pop($arguments)];
             }
 
-            $closure = $method->getClosure($this);
-
-            $this->executeJSONResponder(function() use($closure, $arguments) {
-                return $closure(...$arguments);
+            $this->executeJSONResponder(function() use($method, $arguments) {
+                $method->invokeArgs($this, $arguments);
             });
         } catch (\ReflectionException $e) {
             throw new InvalidRouteException('Invalid route target: ' . self::class . '::' . $name);

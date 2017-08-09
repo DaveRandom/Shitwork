@@ -17,9 +17,9 @@ class Template
 
     public function __construct(string $path, array $before = [], array $after = [], array $vars = [])
     {
-        if (!is_file($path)) {
+        if (!\is_file($path)) {
             throw new InvalidTemplateException('Cannot render template ' . $path . ': file not found');
-        } else if (!is_readable($path)) {
+        } else if (!\is_readable($path)) {
             throw new InvalidTemplateException('Cannot render template ' . $path . ': file not readable');
         }
 
@@ -31,16 +31,16 @@ class Template
 
     private static function require()
     {
-        extract(func_get_arg(1));
+        \extract(\func_get_arg(1));
 
         /** @noinspection PhpIncludeInspection */
-        require func_get_arg(0);
+        require \func_get_arg(0);
     }
 
     public function render(array $vars = null, int $flags = 0)
     {
         $vars = $vars
-            ? array_merge($this->vars, $vars)
+            ? \array_merge($this->vars, $vars)
             : $this->vars;
 
         if (!($flags & self::NO_BEFORE)) {

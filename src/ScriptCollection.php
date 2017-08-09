@@ -8,8 +8,8 @@ class ScriptCollection implements \IteratorAggregate
 
     public function add($data)
     {
-        $this->scripts[] = preg_match('/\s+/', $data)
-            ? ['body' => trim($data)]
+        $this->scripts[] = \preg_match('/\s+/', $data)
+            ? ['body' => \trim($data)]
             : ['src' => $data];
     }
 

@@ -6,8 +6,8 @@ use Shitwork\Exceptions\InternalErrorException;
 
 class InvalidRouteException extends InternalErrorException
 {
-    public function __construct($message = 'Invalid route target', $code = 500, \Throwable $previous = null)
+    public function __construct($message = 'Invalid route target', \Throwable $previous = null)
     {
-        parent::__construct($message, $code, $previous);
+        parent::__construct($message, $previous);
     }
 }

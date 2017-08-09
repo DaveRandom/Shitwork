@@ -56,7 +56,7 @@ abstract class Controller
             }
 
             $this->executeJSONResponder(function() use($method, $arguments) {
-                $method->invokeArgs($this, $arguments);
+                return $method->getClosure($this)(...$arguments);
             });
         } catch (\ReflectionException $e) {
             throw new InvalidRouteException('Invalid route target: ' . self::class . '::' . $name);

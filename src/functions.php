@@ -67,3 +67,10 @@ function http_response_line_from_exception(\Throwable $e, Request $request = nul
         $statusCode, HTTP_ERROR_CODES[$statusCode]
     ));
 }
+
+function error_log_dump(...$vars)
+{
+    \ob_start();
+    var_dump(...$vars);
+    \error_log(\ob_get_clean());
+}

@@ -11,6 +11,7 @@ const HTTP_ERROR_CODES = [
     403 => 'Forbidden',
     404 => 'Not Found',
     405 => 'Method Not Allowed',
+    415 => 'Unsupported Media Type',
     500 => 'Internal Server Error',
 ];
 

@@ -100,6 +100,11 @@ class Request
     private $headers;
 
     /**
+     * @var RequestBody
+     */
+    private $body;
+
+    /**
      * @var array
      */
     private $files;
@@ -123,6 +128,8 @@ class Request
 
         $this->storeURI($_SERVER['REQUEST_URI']);
         $this->storeHeaders($_SERVER);
+
+        $this->body = new RequestBody((string)\file_get_contents('php://input'), $this->getHeader('Content-Type'));
 
         $this->secure = !empty($_SERVER['HTTPS']);
         $this->baseURI = ($this->secure ? 'https' : 'http') . '://' . $this->getHeader('Host');
@@ -365,6 +372,16 @@ class Request
     {
         //todo
         return $this->files;
+    }
+
+    public function hasBody(): bool
+    {
+        return $this->body->getLength() > 0;
+    }
+
+    public function getBody(): RequestBody
+    {
+        return $this->body;
     }
 
     /**

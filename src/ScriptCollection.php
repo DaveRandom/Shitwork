@@ -2,7 +2,7 @@
 
 namespace Shitwork;
 
-class ScriptCollection implements \IteratorAggregate
+final class ScriptCollection implements \IteratorAggregate
 {
     private $scripts = [];
 

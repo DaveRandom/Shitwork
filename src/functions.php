@@ -4,16 +4,7 @@ namespace Shitwork;
 
 use Auryn\Injector;
 use Shitwork\Routing\Router;
-
-const HTTP_ERROR_CODES = [
-    400 => 'Bad Request',
-    401 => 'Unauthorized',
-    403 => 'Forbidden',
-    404 => 'Not Found',
-    405 => 'Method Not Allowed',
-    415 => 'Unsupported Media Type',
-    500 => 'Internal Server Error',
-];
+use Shitwork\Templating\TemplateFetcher;
 
 function injector(Injector $injector = null): Injector
 {
@@ -23,7 +14,7 @@ function injector(Injector $injector = null): Injector
         return $persistent;
     }
 
-    return $persistent = $injector ?? new Injector();
+    return $persistent = $injector ?? (new Injector())->share($injector); // yolo
 }
 
 function bootstrap(Injector $injector = null): Injector
@@ -33,7 +24,6 @@ function bootstrap(Injector $injector = null): Injector
     $injector = \Shitwork\injector($injector);
 
     return $done ? $injector : $done = $injector
-        ->share($injector) // yolo
         ->share(Request::class)
         ->share(Router::class)
         ->share(ScriptCollection::class)
@@ -57,15 +47,19 @@ function parse_bool($var)
 
 function http_response_line_from_exception(\Throwable $e, Request $request = null)
 {
-    $statusCode = \array_key_exists($e->getCode(), HTTP_ERROR_CODES)
-        ? $e->getCode()
-        : 500;
+    try {
+        $code = $e->getCode();
+        $message = HttpStatus::getMessage($e->getCode());
+    } catch (\LogicException $e) {
+        $code = 500;
+        $message = HttpStatus::getMessage($e->getCode());
+    }
 
     \header(\sprintf(
         '%s/%s %d %s',
         isset($request) ? $request->getProtocolName() : 'HTTP',
         isset($request) ? $request->getProtocolVersion() : '1.1',
-        $statusCode, HTTP_ERROR_CODES[$statusCode]
+        $code, $message
     ));
 }
 

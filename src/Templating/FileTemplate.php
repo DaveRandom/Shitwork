@@ -1,21 +1,21 @@
 <?php declare(strict_types = 1);
 
-namespace Shitwork;
+namespace Shitwork\Templating;
 
 use Shitwork\Exceptions\InvalidTemplateException;
 
-class Template
+final class FileTemplate implements Template
 {
     const NO_BEFORE = 0b01;
     const NO_AFTER  = 0b10;
     const PATH_ONLY = self::NO_BEFORE | self::NO_AFTER;
 
     private $path;
-    private $vars;
+    private $variables;
     private $before;
     private $after;
 
-    public function __construct(string $path, array $before = [], array $after = [], array $vars = [])
+    public function __construct(string $path, array $before = [], array $after = [], array $variables = [])
     {
         if (!\is_file($path)) {
             throw new InvalidTemplateException('Cannot render template ' . $path . ': file not found');
@@ -24,7 +24,7 @@ class Template
         }
 
         $this->path = $path;
-        $this->vars = $vars;
+        $this->variables = $variables;
         $this->before = $before;
         $this->after = $after;
     }
@@ -37,23 +37,30 @@ class Template
         require \func_get_arg(0);
     }
 
-    public function render(array $vars = null, int $flags = 0)
+    public function renderString(array $variables = null, int $flags = 0): string
     {
-        $vars = $vars
-            ? \array_merge($this->vars, $vars)
-            : $this->vars;
+        \ob_start();
+        $this->renderOutput($variables, $flags);
+        return \ob_get_clean();
+    }
+
+    public function renderOutput(array $variables = null, int $flags = 0): void
+    {
+        $variables = $variables
+            ? \array_merge($this->variables, $variables)
+            : $this->variables;
 
         if (!($flags & self::NO_BEFORE)) {
             foreach ($this->before as $before) {
-                self::require($before, $vars);
+                self::require($before, $variables);
             }
         }
 
-        self::require($this->path, $vars);
+        self::require($this->path, $variables);
 
         if (!($flags & self::NO_AFTER)) {
             foreach ($this->after as $after) {
-                self::require($after, $vars);
+                self::require($after, $variables);
             }
         }
     }

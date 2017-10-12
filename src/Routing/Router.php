@@ -12,7 +12,7 @@ use Shitwork\Request;
 use Shitwork\Routing\Routes\Route;
 use Shitwork\Session;
 
-class Router
+final class Router
 {
     private $injector;
     private $session;

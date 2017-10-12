@@ -2,7 +2,7 @@
 
 namespace Shitwork\Routing;
 
-class RouteTarget
+final class RouteTarget
 {
     private $callable;
     private $vars;

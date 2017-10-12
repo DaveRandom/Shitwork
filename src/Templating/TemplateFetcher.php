@@ -1,8 +1,8 @@
 <?php declare(strict_types = 1);
 
-namespace Shitwork;
+namespace Shitwork\Templating;
 
-class TemplateFetcher
+final class TemplateFetcher
 {
     private $path;
     private $vars;
@@ -22,8 +22,8 @@ class TemplateFetcher
         return \sprintf($this->path, $name);
     }
 
-    public function fetch(string $name): Template
+    public function fetch(string $name): FileTemplate
     {
-        return new Template(\sprintf($this->path, $name), $this->before, $this->after, $this->vars);
+        return new FileTemplate(\sprintf($this->path, $name), $this->before, $this->after, $this->vars);
     }
 }

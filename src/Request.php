@@ -2,7 +2,7 @@
 
 namespace Shitwork;
 
-class Request
+final class Request
 {
     /**
      * @var string

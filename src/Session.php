@@ -2,7 +2,7 @@
 
 namespace Shitwork;
 
-class Session implements \IteratorAggregate, \Countable, \ArrayAccess
+final class Session implements \IteratorAggregate, \Countable, \ArrayAccess
 {
     /**
      * @var array

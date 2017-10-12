@@ -2,7 +2,7 @@
 
 namespace Shitwork;
 
-class StyleCollection
+final class StyleCollection
 {
     private $styles = [];
 

@@ -288,6 +288,17 @@ final class Request
         return isset($this->urlParams[$key]);
     }
 
+    public function hasURLParams(string ...$keys): bool
+    {
+        foreach ($keys as $key) {
+            if (!isset($this->urlParams[$key])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * @param string $key
      * @return string|null
@@ -308,6 +319,17 @@ final class Request
     public function hasFormParam(string $key): bool
     {
         return isset($this->formParams[$key]);
+    }
+
+    public function hasFormParams(string ...$keys): bool
+    {
+        foreach ($keys as $key) {
+            if (!isset($this->formParams[$key])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -332,6 +354,17 @@ final class Request
         return isset($this->cookies[$key]);
     }
 
+    public function hasCookies(string ...$keys): bool
+    {
+        foreach ($keys as $key) {
+            if (!isset($this->cookies[$key])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     /**
      * @param string $key
      * @return string|null
@@ -352,6 +385,17 @@ final class Request
     public function hasHeader(string $name): bool
     {
         return isset($this->headers[\strtolower($name)]);
+    }
+
+    public function hasHeaders(string ...$names): bool
+    {
+        foreach ($names as $name) {
+            if (!isset($this->headers[\strtolower($name)])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

@@ -14,7 +14,9 @@ function injector(Injector $injector = null): Injector
         return $persistent;
     }
 
-    return $persistent = $injector ?? (new Injector())->share($injector); // yolo
+    $persistent = $injector ?? new Injector;
+
+    return $persistent->share($persistent); // yolo
 }
 
 function bootstrap(Injector $injector = null): Injector
@@ -52,7 +54,7 @@ function http_response_line_from_exception(\Throwable $e, Request $request = nul
         $message = HttpStatus::getMessage($e->getCode());
     } catch (\LogicException $e) {
         $code = 500;
-        $message = HttpStatus::getMessage($e->getCode());
+        $message = HttpStatus::getMessage(500);
     }
 
     \header(\sprintf(

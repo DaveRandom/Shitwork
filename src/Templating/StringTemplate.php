@@ -1,9 +1,8 @@
 <?php declare(strict_types=1);
 
-namespace Shitwork;
+namespace Shitwork\Templating;
 
 use Shitwork\Exceptions\UndefinedTemplateVariableException;
-use Shitwork\Templating\Template;
 
 final class StringTemplate implements Template
 {

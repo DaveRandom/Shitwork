@@ -32,7 +32,7 @@ final class HttpStatus extends Enum
 
     public static function getMessage(int $status): string
     {
-        if (!\array_key_exists($status, self::MESSAGES)) {
+        if (!self::isValid($status)) {
             throw new \LogicException("Invalid or unknown HTTP status: {$status}");
         }
 
@@ -42,5 +42,10 @@ final class HttpStatus extends Enum
     public static function setHeader(int $status): void
     {
         \header("HTTP/1.1 {$status} " . self::getMessage($status));
+    }
+
+    public static function isValid(int $status): bool
+    {
+        return \array_key_exists($status, self::MESSAGES);
     }
 }

@@ -12,6 +12,7 @@ abstract class Controller
     private $responderType = self::RESPONDER_NONE;
     private $useExtraVars = false;
     private $headers = [];
+    private $responseSent = false;
 
     private function parseDocComment(string $comment): array
     {
@@ -39,6 +40,11 @@ abstract class Controller
 
     protected function sendJSONResponse(bool $success, array $data = []): void
     {
+        if ($this->responseSent) {
+            return;
+        }
+
+        $this->responseSent = true;
         $this->headers['content-type'] = $this->headers['content-type'] ?? ['Content-Type', 'application/json'];
 
         $this->sendHeaders();

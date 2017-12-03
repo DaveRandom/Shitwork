@@ -53,8 +53,8 @@ function http_response_line_from_exception(\Throwable $e, Request $request = nul
         $code = $e->getCode();
         $message = HttpStatus::getMessage($e->getCode());
     } catch (\LogicException $e) {
-        $code = 500;
-        $message = HttpStatus::getMessage(500);
+        $code = HttpStatus::INTERNAL_SERVER_ERRO;
+        $message = HttpStatus::getMessage($code);
     }
 
     \header(\sprintf(

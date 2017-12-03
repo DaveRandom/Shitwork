@@ -6,6 +6,13 @@ use Shitwork\Routing\Exceptions\InvalidRouteException;
 
 abstract class Controller
 {
+    private const RESPONDER_NONE = 0;
+    private const RESPONDER_JSON = 1;
+
+    private $responderType = self::RESPONDER_NONE;
+    private $useExtraVars = false;
+    private $headers = [];
+
     private function parseDocComment(string $comment): array
     {
         $result = [];
@@ -19,27 +26,38 @@ abstract class Controller
         return $result;
     }
 
-    protected function executeJSONResponder(callable $callback)
+    protected function sendHeaders(array $extraHeaders = []): void
     {
-        $result = ['success' => true];
+        foreach ($extraHeaders as $name => $value) {
+            \header("{$name}: {$value}");
+        }
 
+        foreach ($this->headers as [$name, $value]) {
+            \header("{$name}: {$value}");
+        }
+    }
+
+    protected function sendJSONResponse(bool $success, array $data = []): void
+    {
+        $this->headers['content-type'] = $this->headers['content-type'] ?? ['Content-Type', 'application/json'];
+
+        $this->sendHeaders();
+
+        echo \json_encode(['success' => $success] + $data);
+    }
+
+    protected function executeJSONResponder(callable $callback): void
+    {
         try {
-            $result = \array_merge($result, (array)$callback());
-        } catch (\Exception $e) {
+            $data = (array)$callback();
+            $success = true;
+        } catch (\Throwable $e) {
             http_response_line_from_exception($e);
 
-            $result['success'] = false;
-            $result['message'] = $e->getMessage();
+            $data = ['message' => $e->getMessage()];
+            $success = false;
         } finally {
-            if (!isset($headers['content-type'])) {
-                \header('Content-Type: application/json');
-            }
-
-            foreach ($this->headers as [$name, $value]) {
-                \header("{$name}: {$value}");
-            }
-
-            echo \json_encode($result);
+            $this->sendJSONResponse($success, $data);
         }
     }
 
@@ -76,13 +94,6 @@ abstract class Controller
             $this->headers[\strtolower($parts[1])] = [$parts[1], $parts[2]];
         }
     }
-
-    private const RESPONDER_NONE = 0;
-    private const RESPONDER_JSON = 1;
-
-    private $responderType = self::RESPONDER_NONE;
-    private $useExtraVars = false;
-    private $headers = [];
 
     public function __call(string $name, array $arguments)
     {

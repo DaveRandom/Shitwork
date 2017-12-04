@@ -53,7 +53,7 @@ function http_response_line_from_exception(\Throwable $e, Request $request = nul
         $code = $e->getCode();
         $message = HttpStatus::getMessage($e->getCode());
     } catch (\LogicException $e) {
-        $code = HttpStatus::INTERNAL_SERVER_ERRO;
+        $code = HttpStatus::INTERNAL_SERVER_ERROR;
         $message = HttpStatus::getMessage($code);
     }
 

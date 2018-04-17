@@ -7,22 +7,8 @@ use Shitwork\Exceptions\LogicError;
 
 final class HttpStatus extends Enum
 {
-    private const MESSAGES = [
+    private const OVERRIDE_MESSAGES = [
         self::OK => 'OK',
-        self::CREATED => 'Created',
-        self::ACCEPTED => 'Accepted',
-        self::NO_CONTENT => 'No Content',
-        self::MOVED_PERMANENTLY => 'Moved Permanently',
-        self::FOUND => 'Found',
-        self::SEE_OTHER => 'See Other',
-        self::TEMPORARY_REDIRECT => 'Temporarily Redirect',
-        self::BAD_REQUEST => 'Bad Request',
-        self::UNAUTHORIZED => 'Unauthorized',
-        self::FORBIDDEN => 'Forbidden',
-        self::NOT_FOUND => 'Not Found',
-        self::METHOD_NOT_ALLOWED => 'Method Not Allowed',
-        self::UNSUPPORTED_MEDIA_TYPE => 'Unsupported Media Type',
-        self::INTERNAL_SERVER_ERROR => 'Internal Server Error',
     ];
 
     public const OK = 200;
@@ -46,11 +32,12 @@ final class HttpStatus extends Enum
      */
     public static function getMessage(int $status): string
     {
-        if (!self::isValid($status)) {
+        if (!self::valueExists($status)) {
             throw new LogicError("Invalid or unknown HTTP status: {$status}");
         }
 
-        return self::MESSAGES[$status];
+        return self::OVERRIDE_MESSAGES[$status]
+            ?? \ucwords(\strtolower(\strtr(self::parseValue($status), '_', ' ')));
     }
 
     /**
@@ -59,10 +46,5 @@ final class HttpStatus extends Enum
     public static function setHeader(int $status): void
     {
         \header("HTTP/1.1 {$status} " . self::getMessage($status));
-    }
-
-    public static function isValid(int $status): bool
-    {
-        return \array_key_exists($status, self::MESSAGES);
     }
 }

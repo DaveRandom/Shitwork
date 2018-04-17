@@ -47,7 +47,7 @@ function parse_bool($var)
         : (bool)$var;
 }
 
-function http_response_line_from_exception(\Throwable $e, Request $request = null)
+function http_response_line_from_exception(\Throwable $e, Request $request = null): int
 {
     try {
         $code = $e->getCode();
@@ -63,6 +63,8 @@ function http_response_line_from_exception(\Throwable $e, Request $request = nul
         isset($request) ? $request->getProtocolVersion() : '1.1',
         $code, $message
     ));
+
+    return $code;
 }
 
 function error_log_dump(...$vars)

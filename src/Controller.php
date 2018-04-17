@@ -58,7 +58,9 @@ abstract class Controller
             $data = (array)$callback();
             $success = true;
         } catch (\Throwable $e) {
-            http_response_line_from_exception($e);
+            if (http_response_line_from_exception($e) === HttpStatus::INTERNAL_SERVER_ERROR) {
+                \error_log((string)$e);
+            }
 
             $data = ['message' => $e->getMessage()];
             $success = false;

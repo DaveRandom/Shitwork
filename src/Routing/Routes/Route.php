@@ -46,11 +46,11 @@ abstract class Route
      */
     public static function static(string $httpMethod, string $uriPattern, array $target): StaticRoute
     {
-        if (!\is_callable($target) || !\is_string($target[0] ?? null) || !\is_string($target)) {
+        if (!\is_string($target[0] ?? null) || !\is_string($target[1] ?? null) || !\method_exists($target[0], $target[1])) {
             throw new \LogicException("Target must be a callable method reference");
         }
 
-        return new StaticRoute($httpMethod, $uriPattern, $className, $methodName);
+        return new StaticRoute($httpMethod, $uriPattern, $target[0], $target[1]);
     }
 
     public static function dynamic(string $httpMethod, string $uriPattern, $objectOrClassName, string $varName = 'method')

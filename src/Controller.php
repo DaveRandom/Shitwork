@@ -58,11 +58,11 @@ abstract class Controller
 
     private function processDocComment(DocComment $comment): void
     {
-        $this->responderType = $comment->hasFlag('jsonResponder')
-            ? self::RESPONDER_JSON
-            : self::RESPONDER_NONE;
+        if ($comment->hasFlag('jsonResponder')) {
+            $this->responderType = self::RESPONDER_JSON;
+        }
 
-        $this->useExtraVars = $comment->hasFlag('extraVars');
+        $this->useExtraVars = $this->useExtraVars || $comment->hasFlag('extraVars');
 
         foreach ($comment->getValues('header') as $header) {
             if (!\preg_match('/^(\S+)\s+(\S.*)$/', $header, $parts)) {

@@ -2,6 +2,8 @@
 
 namespace Shitwork\Templating;
 
+use Shitwork\Exceptions\InvalidTemplateException;
+
 final class TemplateFetcher
 {
     private $path;
@@ -22,6 +24,9 @@ final class TemplateFetcher
         return \sprintf($this->path, $name);
     }
 
+    /**
+     * @throws InvalidTemplateException
+     */
     public function fetch(string $name): FileTemplate
     {
         return new FileTemplate(\sprintf($this->path, $name), $this->before, $this->after, $this->vars);

@@ -15,11 +15,16 @@ final class FileTemplate implements Template
     private $before;
     private $after;
 
+    /**
+     * @throws InvalidTemplateException
+     */
     public function __construct(string $path, array $before = [], array $after = [], array $variables = [])
     {
         if (!\is_file($path)) {
             throw new InvalidTemplateException('Cannot render template ' . $path . ': file not found');
-        } else if (!\is_readable($path)) {
+        }
+
+        if (!\is_readable($path)) {
             throw new InvalidTemplateException('Cannot render template ' . $path . ': file not readable');
         }
 
@@ -29,7 +34,7 @@ final class FileTemplate implements Template
         $this->after = $after;
     }
 
-    private static function require()
+    private static function require(): void
     {
         \extract(\func_get_arg(1));
 

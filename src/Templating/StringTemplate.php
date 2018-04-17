@@ -2,6 +2,7 @@
 
 namespace Shitwork\Templating;
 
+use Shitwork\Exceptions\LogicError;
 use Shitwork\Exceptions\UndefinedTemplateVariableException;
 
 final class StringTemplate implements Template
@@ -20,6 +21,9 @@ final class StringTemplate implements Template
     private $templateString;
     private $errorMode;
 
+    /**
+     * @throws LogicError
+     */
     public function __construct(string $templateString, int $errorMode = self::ERR_IGNORE)
     {
         $this->templateString = $templateString;
@@ -37,10 +41,13 @@ final class StringTemplate implements Template
         return $this->errorMode;
     }
 
+    /**
+     * @throws LogicError
+     */
     public function setErrorMode(int $errorMode): void
     {
         if (!\in_array($errorMode, [self::ERR_IGNORE, self::ERR_EMPTY, self::ERR_THROW], true)) {
-            throw new \LogicException("Unknown error mode: {$errorMode}");
+            throw new LogicError("Unknown error mode: {$errorMode}");
         }
 
         $this->errorMode = $errorMode;

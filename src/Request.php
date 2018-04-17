@@ -2,6 +2,8 @@
 
 namespace Shitwork;
 
+use Shitwork\Exceptions\LogicError;
+
 final class Request
 {
     /**
@@ -109,6 +111,9 @@ final class Request
      */
     private $files;
 
+    /**
+     * @throws \Error
+     */
     public function __construct()
     {
         $this->urlParams = (array)$_GET;
@@ -137,7 +142,10 @@ final class Request
         $this->absoluteURI = $this->baseURI . $this->rawURI;
     }
 
-    private function storeURI(string $uri)
+    /**
+     * @throws \Error
+     */
+    private function storeURI(string $uri): void
     {
         static $splitExpr = /** @lang text */
         "#
@@ -156,7 +164,7 @@ final class Request
         #x";
 
         if (!\preg_match($splitExpr, $uri, $matches)) {
-            throw new \UnexpectedValueException('Malformed URI');
+            throw new \Error('Malformed URI');
         }
 
         $ucWords = function($match) {
@@ -429,47 +437,54 @@ final class Request
     }
 
     /**
+     * @throws LogicError
+     */
+    private function resolvePartialRedirectUri(array $parts, string $uri): string
+    {
+        if (!empty($parts['host'])) {
+            return ($this->secure ? 'https:' : 'http:') . $uri;
+        }
+
+        if (!empty($parts['path'])) {
+            if ($parts['path'][0] !== '/') {
+                throw new LogicError('Path-only redirect URIs must be absolute: ' . $uri);
+            }
+
+            return $this->baseURI . $uri;
+        }
+
+        if (!empty($parts['query'])) {
+            return $this->baseURI . $this->uriPath . $uri;
+        }
+
+        if (!empty($parts['fragment'])) {
+            return $this->baseURI . $this->rawURI . $uri;
+        }
+
+        throw new LogicError('Invalid redirect target URI: ' . $uri);
+    }
+
+    /**
      * @todo This probably doesn't belong here
      * @param string $uri
      * @param int $code
-     * @throws \Exception
+     * @throws LogicError
      */
-    public function redirect(string $uri, int $code = 303)
+    public function redirect(string $uri, int $code = HttpStatus::SEE_OTHER)
     {
-        static $statusMessages = [
-            301 => 'Moved Permanently',
-            302 => 'Found',
-            303 => 'See Other',
-            307 => 'Temporarily Redirect',
-        ];
+        if (!\in_array($code, [HttpStatus::MOVED_PERMANENTLY, HttpStatus::FOUND, HttpStatus::SEE_OTHER, HttpStatus::TEMPORARY_REDIRECT])) {
+            throw new LogicError('Unknown redirect response code: ' . $code);
+        }
 
-        if (!isset($statusMessages[$code])) {
-            throw new \Exception('Unknown redirect response code: ' . $code);
-        } else if (!$parts = \parse_url($uri)) {
-            throw new \Exception('Invalid redirect target URI: ' . $uri);
+        if (!$parts = \parse_url($uri)) {
+            throw new LogicError('Invalid redirect target URI: ' . $uri);
         }
 
         if (empty($parts['scheme'])) {
-            $scheme = $this->secure ? 'https:' : 'http:';
-
-            if (!empty($parts['host'])) {
-                $uri = $scheme . $uri;
-            } else if (!empty($parts['path'])) {
-                if ($parts['path'][0] !== '/') {
-                    throw new \Exception('Path-only redirect URIs must be absolute: ' . $uri);
-                }
-
-                $uri = $this->baseURI . $uri;
-            } else if (!empty($parts['query'])) {
-                $uri = $this->baseURI . $this->uriPath . $uri;
-            } else if (!empty($parts['fragment'])) {
-                $uri = $this->baseURI . $this->rawURI . $uri;
-            } else {
-                throw new \Exception('Invalid redirect target URI: ' . $uri);
-            }
+            $uri = $this->resolvePartialRedirectUri($parts, $uri);
         }
 
-        \header(\sprintf('%s/%s %d %s', $this->protocolName, $this->protocolVersion, $code, $statusMessages[$code]));
+        HttpStatus::setHeader($code);
         \header(\sprintf('Location: %s', $uri));
     }
 }

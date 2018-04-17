@@ -2,7 +2,7 @@
 
 namespace Shitwork;
 
-use Shitwork\Routing\Exceptions\InvalidRouteException;
+use Shitwork\Routing\InvalidRouteException;
 
 abstract class Controller
 {
@@ -13,19 +13,6 @@ abstract class Controller
     private $useExtraVars = false;
     private $headers = [];
     private $responseSent = false;
-
-    private function parseDocComment(string $comment): array
-    {
-        $result = [];
-
-        foreach (\preg_split('#[\r\n]+#', $comment, -1, \PREG_SPLIT_NO_EMPTY) as $line) {
-            if (\preg_match('#\s\*\s*@([a-z0-9\-_]+)\s*(.*)#i', $line, $match)) {
-                $result[\strtolower($match[1])][] = $match[2] ?? '';
-            }
-        }
-
-        return $result;
-    }
 
     protected function sendHeaders(array $extraHeaders = []): void
     {
@@ -69,32 +56,15 @@ abstract class Controller
         }
     }
 
-    private function commentFlagIsEnabled(array $values): bool
+    private function processDocComment(DocComment $comment): void
     {
-        return !\in_array(\strtolower($values[0]), ['no', 'off', 'false']);
-    }
+        $this->responderType = $comment->hasFlag('jsonResponder')
+            ? self::RESPONDER_JSON
+            : self::RESPONDER_NONE;
 
-    private function processDocComment(string $comment): void
-    {
-        $vars = [];
+        $this->useExtraVars = $comment->hasFlag('extraVars');
 
-        foreach (\preg_split('#[\r\n]+#', $comment, -1, \PREG_SPLIT_NO_EMPTY) as $line) {
-            if (\preg_match('#\s\*\s*@([a-z0-9\-_]+)\s*(.*)#i', $line, $match)) {
-                $vars[\strtolower($match[1])][] = \trim($match[2]) ?? '';
-            }
-        }
-
-        if (isset($vars['jsonresponder'])) {
-            $this->responderType = $this->commentFlagIsEnabled($vars['jsonresponder'])
-                ? self::RESPONDER_JSON
-                : self::RESPONDER_NONE;
-        }
-
-        if (isset($vars['extravars'])) {
-            $this->useExtraVars = $this->commentFlagIsEnabled($vars['extravars']);
-        }
-
-        foreach ($vars['header'] ?? [] as $header) {
+        foreach ($comment->getValues('header') as $header) {
             if (!\preg_match('/^(\S+)\s+(\S.*)$/', $header, $parts)) {
                 continue;
             }
@@ -103,23 +73,26 @@ abstract class Controller
         }
     }
 
+    /**
+     * @throws InvalidRouteException
+     */
     public function __call(string $name, array $arguments)
     {
         try {
-            $object = new \ReflectionObject($this);
+            $object = new \ReflectionClass($this);
 
             if (false !== $comment = $object->getDocComment()) {
-                $this->processDocComment($comment);
+                $this->processDocComment(DocComment::parse($comment));
             }
 
             $method = $object->getMethod($name);
 
             if (false !== $comment = $method->getDocComment()) {
-                $this->processDocComment($comment);
+                $this->processDocComment(DocComment::parse($comment));
             }
 
             if ($this->responderType === self::RESPONDER_NONE) {
-                throw new InvalidRouteException('Invalid route target (no responder set): ' . \get_class($this) . '::' . $name);
+                throw new InvalidRouteException($this, $name, 'No responder set');
             }
 
             if (!$this->useExtraVars) {
@@ -130,7 +103,7 @@ abstract class Controller
                 return $method->getClosure($this)(...$arguments);
             });
         } catch (\ReflectionException $e) {
-            throw new InvalidRouteException("Invalid route target ({$e->getMessage()}): " . \get_class($this) . '::' . $name);
+            throw new InvalidRouteException($this, $name, $e->getMessage(), $e);
         }
     }
 }

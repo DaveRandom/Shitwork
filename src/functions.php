@@ -3,9 +3,13 @@
 namespace Shitwork;
 
 use Auryn\Injector;
+use Shitwork\Exceptions\LogicError;
 use Shitwork\Routing\Router;
 use Shitwork\Templating\TemplateFetcher;
 
+/**
+ * @throws \Auryn\ConfigException
+ */
 function injector(Injector $injector = null): Injector
 {
     static $persistent;
@@ -19,6 +23,9 @@ function injector(Injector $injector = null): Injector
     return $persistent->share($persistent); // yolo
 }
 
+/**
+ * @throws \Auryn\ConfigException
+ */
 function bootstrap(Injector $injector = null): Injector
 {
     static $done = false;
@@ -52,8 +59,9 @@ function http_response_line_from_exception(\Throwable $e, Request $request = nul
     try {
         $code = $e->getCode();
         $message = HttpStatus::getMessage($e->getCode());
-    } catch (\LogicException $e) {
+    } catch (LogicError $e) {
         $code = HttpStatus::INTERNAL_SERVER_ERROR;
+        /** @noinspection PhpUnhandledExceptionInspection */
         $message = HttpStatus::getMessage($code);
     }
 

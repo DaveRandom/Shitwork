@@ -3,6 +3,7 @@
 namespace Shitwork;
 
 use DaveRandom\Enum\Enum;
+use Shitwork\Exceptions\LogicError;
 
 final class HttpStatus extends Enum
 {
@@ -11,6 +12,10 @@ final class HttpStatus extends Enum
         self::CREATED => 'Created',
         self::ACCEPTED => 'Accepted',
         self::NO_CONTENT => 'No Content',
+        self::MOVED_PERMANENTLY => 'Moved Permanently',
+        self::FOUND => 'Found',
+        self::SEE_OTHER => 'See Other',
+        self::TEMPORARY_REDIRECT => 'Temporarily Redirect',
         self::BAD_REQUEST => 'Bad Request',
         self::UNAUTHORIZED => 'Unauthorized',
         self::FORBIDDEN => 'Forbidden',
@@ -24,6 +29,10 @@ final class HttpStatus extends Enum
     public const CREATED = 201;
     public const ACCEPTED = 202;
     public const NO_CONTENT = 204;
+    public const MOVED_PERMANENTLY = 301;
+    public const FOUND = 302;
+    public const SEE_OTHER = 303;
+    public const TEMPORARY_REDIRECT = 307;
     public const BAD_REQUEST = 400;
     public const UNAUTHORIZED = 401;
     public const FORBIDDEN = 403;
@@ -32,15 +41,21 @@ final class HttpStatus extends Enum
     public const UNSUPPORTED_MEDIA_TYPE = 415;
     public const INTERNAL_SERVER_ERROR = 500;
 
+    /**
+     * @throws LogicError
+     */
     public static function getMessage(int $status): string
     {
         if (!self::isValid($status)) {
-            throw new \LogicException("Invalid or unknown HTTP status: {$status}");
+            throw new LogicError("Invalid or unknown HTTP status: {$status}");
         }
 
         return self::MESSAGES[$status];
     }
 
+    /**
+     * @throws LogicError
+     */
     public static function setHeader(int $status): void
     {
         \header("HTTP/1.1 {$status} " . self::getMessage($status));

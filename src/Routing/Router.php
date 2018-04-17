@@ -5,9 +5,8 @@ namespace Shitwork\Routing;
 use Auryn\Injector;
 use FastRoute\Dispatcher;
 use FastRoute\RouteCollector;
-use Shitwork\Routing\Exceptions\InvalidRouteException;
-use Shitwork\Routing\Exceptions\MethodNotAllowedException;
-use Shitwork\Routing\Exceptions\NotFoundException;
+use Shitwork\Exceptions\MethodNotAllowedException;
+use Shitwork\Exceptions\NotFoundException;
 use Shitwork\Request;
 use Shitwork\Routing\Routes\Route;
 use Shitwork\Session;
@@ -35,11 +34,14 @@ final class Router
         $this->dispatcher = \FastRoute\simpleDispatcher((new \ReflectionObject($this))->getMethod('collectRoutes')->getClosure($this));
     }
 
-    private function collectRoutes(RouteCollector $collector)
+    /**
+     * @throws InvalidRouteException
+     */
+    private function collectRoutes(RouteCollector $collector): void
     {
         foreach ($this->routes as $i => $route) {
             if (!$route instanceof Route) {
-                throw new InvalidRouteException('Invalid route at index ' . $i . ': must be an instance of ' . Route::class);
+                throw new InvalidRouteException('Invalid', 'invalid', 'Entry at index ' . $i . ' is not an instance of ' . Route::class);
             }
 
             $collector->addRoute($route->getHttpMethod(), $route->getUriPattern(), $route);
@@ -51,6 +53,11 @@ final class Router
         $this->routes[] = $route;
     }
 
+    /**
+     * @throws MethodNotAllowedException
+     * @throws InvalidRouteException
+     * @throws NotFoundException
+     */
     public function dispatchRequest(Request $request): RouteTarget
     {
         $path = \rawurldecode($request->getURIPath());

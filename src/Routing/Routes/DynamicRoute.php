@@ -2,8 +2,10 @@
 
 namespace Shitwork\Routing\Routes;
 
+use Auryn\InjectionException;
 use Auryn\Injector;
-use Shitwork\Routing\Exceptions\NotFoundException;
+use Shitwork\Routing\InvalidRouteException;
+use Shitwork\Exceptions\NotFoundException;
 use Shitwork\Routing\RouteTarget;
 
 final class DynamicRoute extends Route
@@ -12,28 +14,42 @@ final class DynamicRoute extends Route
     private $className;
     private $varName;
 
+    /**
+     * @throws InvalidRouteException
+     */
     public function __construct(string $httpMethod, string $uriPattern, $objectOrClassName, string $varName = 'method')
     {
         parent::__construct($httpMethod, $uriPattern);
 
         if (\is_object($objectOrClassName)) {
             $this->object = $objectOrClassName;
+        } else if (\is_string($objectOrClassName)) {
+            $this->className = $objectOrClassName;
         } else {
-            $this->className = (string)$objectOrClassName;
+            throw new InvalidRouteException('Invalid', 'dynamic', 'Target must be a class name or object instance');
         }
 
         $this->varName = $varName;
     }
 
+    /**
+     * @throws NotFoundException
+     * @throws \Shitwork\Routing\InvalidRouteException
+     */
     public function getTarget(Injector $injector, array $vars): RouteTarget
     {
-        $object = $this->object ?? $injector->make($this->className);
-        $target = [$object, \strtr($vars[$this->varName], ['-' => ''])];
+        $methodName = \strtr($vars[$this->varName], ['-' => '']);
 
-        if (!\is_callable($target)) {
+        try {
+            $object = $this->object ?? $injector->make($this->className);
+        } catch (InjectionException $e) {
+            throw new InvalidRouteException($this->className, $methodName, "Instance creation failed: {$e->getMessage()}", $e);
+        }
+
+        if (!\is_callable([$object, $methodName])) {
             throw new NotFoundException('Unknown endpoint: ' . $vars[$this->varName]);
         }
 
-        return new RouteTarget($target, $vars, $object);
+        return new RouteTarget([$object, $methodName], $vars, $object);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Shitwork;
 
+use Shitwork\Exceptions\LogicError;
+
 final class Session implements \IteratorAggregate, \Countable, \ArrayAccess
 {
     /**
@@ -18,6 +20,7 @@ final class Session implements \IteratorAggregate, \Countable, \ArrayAccess
     public function __destruct()
     {
         if ($this->isOpen()) {
+            /** @noinspection PhpUnhandledExceptionInspection */
             $this->close();
         }
     }
@@ -27,10 +30,13 @@ final class Session implements \IteratorAggregate, \Countable, \ArrayAccess
         return isset($this->data);
     }
 
+    /**
+     * @throws LogicError
+     */
     public function close()
     {
         if (!$this->isOpen()) {
-            throw new \Exception('Cannot close session: not open');
+            throw new LogicError('Cannot close session: not open');
         }
 
         $_SESSION = $this->data;

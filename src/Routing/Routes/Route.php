@@ -40,8 +40,16 @@ abstract class Route
         return new DocCommentSet($classComment, $methodComment);
     }
 
-    public static function static(string $httpMethod, string $uriPattern, string $className, string $methodName): StaticRoute
+    /**
+     * @param array|callable $target
+     * @return StaticRoute
+     */
+    public static function static(string $httpMethod, string $uriPattern, array $target): StaticRoute
     {
+        if (!\is_callable($target) || !\is_string($target[0] ?? null) || !\is_string($target)) {
+            throw new \LogicException("Target must be a callable method reference");
+        }
+
         return new StaticRoute($httpMethod, $uriPattern, $className, $methodName);
     }
 

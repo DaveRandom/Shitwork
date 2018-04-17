@@ -2,6 +2,8 @@
 
 namespace Shitwork;
 
+use DaveRandom\Enum\Enum;
+
 final class HttpStatus extends Enum
 {
     private const MESSAGES = [

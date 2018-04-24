@@ -13,6 +13,7 @@
         "php": ">=7.0",
         "daverandom/enum": "~1.0",
         "nikic/fast-route": "~1.0",
+        "ramsey/uuid": "~3.0",
         "rdlowrey/auryn": "^1.1"
     },
     "autoload": {

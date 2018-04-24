@@ -82,22 +82,22 @@ final class Request
     private $pathParams;
 
     /**
-     * @var string[]
+     * @var DataRecord
      */
     private $urlParams;
 
     /**
-     * @var string[]
+     * @var DataRecord
      */
     private $formParams;
 
     /**
-     * @var string[]
+     * @var DataRecord
      */
     private $cookies;
 
     /**
-     * @var string[]
+     * @var HeaderCollection
      */
     private $headers;
 
@@ -116,10 +116,11 @@ final class Request
      */
     public function __construct()
     {
-        $this->urlParams = (array)$_GET;
-        $this->formParams = (array)$_POST;
-        $this->cookies = (array)$_COOKIE;
+        $this->urlParams = new ValueMap((array)$_GET);
+        $this->formParams = new ValueMap((array)$_POST);
+        $this->cookies = new ValueMap((array)$_COOKIE);
         $this->files = (array)$_FILES;
+        $this->headers = HeaderCollection::createFromSuperglobals();
 
         $this->remoteAddr = $_SERVER['REMOTE_ADDR'];
         $this->remotePort = (int)$_SERVER['REMOTE_PORT'];
@@ -132,12 +133,25 @@ final class Request
         }
 
         $this->storeURI($_SERVER['REQUEST_URI']);
-        $this->storeHeaders($_SERVER);
 
-        $this->body = new RequestBody((string)\file_get_contents('php://input'), $this->getHeader('Content-Type'));
+        try {
+            $contentType = $this->headers->get('Content-Type');
+        } catch (\Exception $e) {
+            $contentType = null;
+        }
+
+        try {
+            $host = $this->headers->get('Host');
+        } catch (\Exception $e) {
+            $host = null;
+        }
+
+        $this->body = new RequestBody((string)\file_get_contents('php://input'), $contentType);
 
         $this->secure = !empty($_SERVER['HTTPS']);
-        $this->baseURI = ($this->secure ? 'https' : 'http') . '://' . $this->getHeader('Host');
+        $scheme = $this->secure ? 'https' : 'http';
+
+        $this->baseURI = $scheme . '://' . $host;
 
         $this->absoluteURI = $this->baseURI . $this->rawURI;
     }
@@ -182,15 +196,6 @@ final class Request
         $this->pathParams = isset($matches['params']) && $matches['params'] !== ''
             ? \preg_split('#/+#', $matches['params'], -1, PREG_SPLIT_NO_EMPTY)
             : [];
-    }
-
-    private function storeHeaders(array $server)
-    {
-        foreach ($server as $key => $value) {
-            if (\strtoupper(\substr($key, 0, 5)) === 'HTTP_') {
-                $this->headers[\strtolower(\preg_replace('#_+#', '-', \substr($key, 5)))] = $value;
-            }
-        }
     }
 
     public function getProtocolName(): string
@@ -291,131 +296,22 @@ final class Request
         return $this->pathParams;
     }
 
-    public function hasURLParam(string $key): bool
-    {
-        return isset($this->urlParams[$key]);
-    }
-
-    public function hasURLParams(string ...$keys): bool
-    {
-        foreach ($keys as $key) {
-            if (!isset($this->urlParams[$key])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param string $key
-     * @return string|null
-     */
-    public function getURLParam(string $key)
-    {
-        return $this->urlParams[$key] ?? null;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getAllURLParams(): array
+    public function getUrlParams(): DataRecord
     {
         return $this->urlParams;
     }
 
-    public function hasFormParam(string $key): bool
-    {
-        return isset($this->formParams[$key]);
-    }
-
-    public function hasFormParams(string ...$keys): bool
-    {
-        foreach ($keys as $key) {
-            if (!isset($this->formParams[$key])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param string $key
-     * @return string|null
-     */
-    public function getFormParam(string $key)
-    {
-        return $this->formParams[$key] ?? null;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getAllFormParams(): array
+    public function getFormParams(): DataRecord
     {
         return $this->formParams;
     }
 
-    public function hasCookie(string $key): bool
-    {
-        return isset($this->cookies[$key]);
-    }
-
-    public function hasCookies(string ...$keys): bool
-    {
-        foreach ($keys as $key) {
-            if (!isset($this->cookies[$key])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param string $key
-     * @return string|null
-     */
-    public function getCookie(string $key)
-    {
-        return $this->cookies[$key] ?? null;
-    }
-
-    /**
-     * @return string[]
-     */
-    public function getAllCookies(): array
+    public function getCookies(): DataRecord
     {
         return $this->cookies;
     }
 
-    public function hasHeader(string $name): bool
-    {
-        return isset($this->headers[\strtolower($name)]);
-    }
-
-    public function hasHeaders(string ...$names): bool
-    {
-        foreach ($names as $name) {
-            if (!isset($this->headers[\strtolower($name)])) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * @param string $name
-     * @return string|null
-     */
-    public function getHeader($name)
-    {
-        return $this->headers[\strtolower($name)] ?? null;
-    }
-
-    public function getAllHeaders(): array
+    public function getHeaders(): HeaderCollection
     {
         return $this->headers;
     }
@@ -486,5 +382,117 @@ final class Request
 
         HttpStatus::setHeader($code);
         \header(\sprintf('Location: %s', $uri));
+    }
+
+    /** @deprecated */
+    public function hasURLParam(string $key): bool
+    {
+        return $this->urlParams->contains($key);
+    }
+
+    /** @deprecated */
+    public function hasURLParams(string ...$keys): bool
+    {
+        return $this->urlParams->contains(...$keys);
+    }
+
+    /** @deprecated */
+    public function getURLParam(string $key): ?string
+    {
+        try {
+            return $this->urlParams->getString($key);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /** @deprecated */
+    public function getAllURLParams(): array
+    {
+        return $this->urlParams->toArray();
+    }
+
+    /** @deprecated */
+    public function hasFormParam(string $key): bool
+    {
+        return $this->formParams->contains($key);
+    }
+
+    /** @deprecated */
+    public function hasFormParams(string ...$keys): bool
+    {
+        return $this->formParams->contains(...$keys);
+    }
+
+    /** @deprecated */
+    public function getFormParam(string $key): ?string
+    {
+        try {
+            return $this->formParams->getString($key);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /** @deprecated */
+    public function getAllFormParams(): array
+    {
+        return $this->formParams->toArray();
+    }
+
+    /** @deprecated */
+    public function hasCookie(string $key): bool
+    {
+        return $this->cookies->contains($key);
+    }
+
+    /** @deprecated */
+    public function hasCookies(string ...$keys): bool
+    {
+        return $this->cookies->contains(...$keys);
+    }
+
+    /** @deprecated */
+    public function getCookie(string $key): ?string
+    {
+        try {
+            return $this->cookies->getString($key);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /** @deprecated */
+    public function getAllCookies(): array
+    {
+        return $this->cookies->toArray();
+    }
+
+    /** @deprecated */
+    public function hasHeader(string $name): bool
+    {
+        return $this->headers->contains($name);
+    }
+
+    /** @deprecated */
+    public function hasHeaders(string ...$names): bool
+    {
+        return $this->headers->contains(...$names);
+    }
+
+    /** @deprecated */
+    public function getHeader(string $name): ?string
+    {
+        try {
+            return $this->headers->get($name);
+        } catch (\Exception $e) {
+            return null;
+        }
+    }
+
+    /** @deprecated */
+    public function getAllHeaders(): array
+    {
+        return $this->headers->toArray();
     }
 }

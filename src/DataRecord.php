@@ -38,13 +38,25 @@ interface DataRecord
      * @throws UndefinedValueException
      * @throws InvalidFormatException
      */
-    public function getDateTime(string $name, string $format): \DateTimeImmutable;
+    public function getDateTime(string $name, string $format = null): \DateTimeImmutable;
 
     /**
      * @throws UndefinedValueException
      * @throws InvalidFormatException
      */
     public function getUuid(string $name): UuidInterface;
+
+    /**
+     * @throws UndefinedValueException
+     * @throws InvalidFormatException
+     */
+    public function getArray(string $name): array;
+
+    /**
+     * @throws UndefinedValueException
+     * @throws InvalidFormatException
+     */
+    public function getObject(string $name, string $className = null): object;
 
     /**
      * @throws UndefinedValueException
@@ -74,13 +86,25 @@ interface DataRecord
      * @throws UndefinedValueException
      * @throws InvalidFormatException
      */
-    public function getNullableDateTime(string $name, string $format): ?\DateTimeImmutable;
+    public function getNullableDateTime(string $name, string $format = null): ?\DateTimeImmutable;
 
     /**
      * @throws UndefinedValueException
      * @throws InvalidFormatException
      */
     public function getNullableUuid(string $name): ?UuidInterface;
+
+    /**
+     * @throws UndefinedValueException
+     * @throws InvalidFormatException
+     */
+    public function getNullableArray(string $name): array;
+
+    /**
+     * @throws UndefinedValueException
+     * @throws InvalidFormatException
+     */
+    public function getNullableObject(string $name, string $className = null): ?object;
 
     public function toArray(): array;
 }

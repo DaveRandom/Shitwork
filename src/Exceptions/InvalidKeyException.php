@@ -2,4 +2,4 @@
 
 namespace Shitwork\Exceptions;
 
-final class LogicError extends \Error { }
+class InvalidKeyException extends Exception { }

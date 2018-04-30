@@ -4,107 +4,129 @@ namespace Shitwork;
 
 use Ramsey\Uuid\UuidInterface;
 use Shitwork\Exceptions\InvalidFormatException;
-use Shitwork\Exceptions\UndefinedValueException;
+use Shitwork\Exceptions\InvalidKeyException;
 
-interface DataRecord
+interface DataRecord extends \Countable
 {
-    public function contains(string ...$names): bool;
+    function contains(string ...$names): bool;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getBool(string $name): bool;
+    function getBool($key): bool;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getInt(string $name): int;
+    function getInt($key): int;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getFloat(string $name): float;
+    function getFloat($key): float;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getString(string $name): string;
+    function getString($key): string;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getDateTime(string $name, string $format = null): \DateTimeImmutable;
+    function getDateTime($key, string $format = null): \DateTimeImmutable;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getUuid(string $name): UuidInterface;
+    function getTime($key): Time;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getArray(string $name): array;
+    function getUuid($key): UuidInterface;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getObject(string $name, string $className = null): object;
+    function getArray($key): array;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getNullableBool(string $name): ?bool;
+    function getObject($key, string $className = null): object;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getNullableInt(string $name): ?int;
+    function getNullableBool($key): ?bool;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getNullableFloat(string $name): ?float;
+    function getNullableInt($key): ?int;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getNullableString(string $name): ?string;
+    function getNullableFloat($key): ?float;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getNullableDateTime(string $name, string $format = null): ?\DateTimeImmutable;
+    function getNullableString($key): ?string;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getNullableUuid(string $name): ?UuidInterface;
+    function getNullableDateTime($key, string $format = null): ?\DateTimeImmutable;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getNullableArray(string $name): array;
+    function getNullableTime($key): ?Time;
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    public function getNullableObject(string $name, string $className = null): ?object;
+    function getNullableUuid($key): ?UuidInterface;
 
-    public function toArray(): array;
+    /**
+     * @throws InvalidKeyException
+     * @throws InvalidFormatException
+     */
+    function getNullableArray($key): array;
+
+    /**
+     * @throws InvalidKeyException
+     * @throws InvalidFormatException
+     */
+    function getNullableObject($key, string $className = null): ?object;
+
+    function toArray(): array;
+
+    /**
+     * @throws InvalidKeyException
+     */
+    function getName(int $key): string;
+
+    /**
+     * @throws InvalidKeyException
+     */
+    function getOrdinal(string $name): int;
 }

@@ -2,7 +2,7 @@
 
 namespace Shitwork;
 
-use Shitwork\Exceptions\UndefinedValueException;
+use Shitwork\Exceptions\InvalidKeyException;
 
 final class HeaderCollection
 {
@@ -39,14 +39,14 @@ final class HeaderCollection
     }
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      */
     public function get(string $name): string
     {
         $normalName = $this->normalizeName($name);
 
         if (!\array_key_exists($normalName, $this->headers)) {
-            throw new UndefinedValueException("Header '{$name}' not defined in the collection");
+            throw new InvalidKeyException("Header '{$name}' not defined in the collection");
         }
 
         return $this->headers[$normalName];

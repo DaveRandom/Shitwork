@@ -2,4 +2,4 @@
 
 namespace Shitwork\Exceptions;
 
-class UndefinedValueException extends Exception { }
+final class OutOfRangeException extends Exception { }

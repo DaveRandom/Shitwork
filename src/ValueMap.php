@@ -5,17 +5,36 @@ namespace Shitwork;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 use Shitwork\Exceptions\InvalidFormatException;
-use Shitwork\Exceptions\UndefinedValueException;
+use Shitwork\Exceptions\LogicError;
+use Shitwork\Exceptions\OutOfRangeException;
+use Shitwork\Exceptions\InvalidKeyException;
 
 final class ValueMap implements DataRecord
 {
     private const DEFAULT_DATETIME_FORMAT = 'Y-m-d H:i:s';
 
     private $values;
+    private $names = [];
+    private $keysByName = [];
 
-    public function __construct(array $values)
+    public function __construct(array $values, array $names = null)
     {
-        $this->values = $values;
+        if ($names === null) {
+            $names = \array_keys($values);
+        } else if (\count($values) !== \count($names)) {
+            throw new LogicError("Number of names must match number of values");
+        }
+
+        $this->values = \array_values($values);
+
+        $key = 0;
+
+        foreach ($names as $name) {
+            $this->names[$key] = $name;
+            $this->keysByName[$name] = $this->keysByName[$name] ?? $key;
+
+            $key++;
+        }
     }
 
     private function describeType($value)
@@ -116,7 +135,7 @@ final class ValueMap implements DataRecord
             return \DateTimeImmutable::createFromFormat('U.u', \sprintf('%.6F', $value));
         }
 
-        if (!\is_scalar($value)) {
+        if (!\is_string($value)) {
             throw new InvalidFormatException("Cannot convert value of type {$this->describeType($value)} to date/time");
         }
 
@@ -125,6 +144,33 @@ final class ValueMap implements DataRecord
         }
 
         return $result;
+    }
+
+    /** @throws InvalidFormatException */
+    private function parseTime($value): Time
+    {
+        if ($value instanceof Time) {
+            return $value;
+        }
+
+        try {
+            if ($value instanceof \DateTimeInterface) {
+                return Time::createFromDateTime($value);
+            }
+
+            // int, float and numeric string are treated as number of seconds
+            if (\is_numeric($value)) {
+                return Time::createFromSeconds($value);
+            }
+
+            if (!\is_string($value)) {
+                throw new InvalidFormatException("Cannot convert value of type {$this->describeType($value)} to time");
+            }
+
+            return Time::createFromString($value);
+        } catch (OutOfRangeException $e) {
+            throw new InvalidFormatException("Failed to convert '{$value}' to time: {$e->getMessage()}");
+        }
     }
 
     /** @throws InvalidFormatException */
@@ -178,16 +224,20 @@ final class ValueMap implements DataRecord
     }
 
     /**
-     * @throws UndefinedValueException
+     * @throws InvalidKeyException
      * @return mixed
      */
-    public function getRawValue(string $name)
+    public function getRawValue($key)
     {
-        if (!\array_key_exists($name, $this->values)) {
-            throw new UndefinedValueException("Key '{$name}' does not exist in the collection");
+        if (!\array_key_exists($key, $this->values)) {
+            if (!isset($this->keysByName[$key])) {
+                throw new InvalidKeyException("Key '{$key}' does not exist in the collection");
+            }
+
+            $key = $this->keysByName[$key];
         }
 
-        return $this->values[$name];
+        return $this->values[$key];
     }
 
     /** @inheritdoc */
@@ -203,57 +253,63 @@ final class ValueMap implements DataRecord
     }
 
     /** @inheritdoc */
-    public function getBool(string $name): bool
+    public function getBool($key): bool
     {
-        return $this->parseBool($this->getRawValue($name));
+        return $this->parseBool($this->getRawValue($key));
     }
 
     /** @inheritdoc */
-    public function getInt(string $name): int
+    public function getInt($key): int
     {
-        return $this->parseInt($this->getRawValue($name));
+        return $this->parseInt($this->getRawValue($key));
     }
 
     /** @inheritdoc */
-    public function getFloat(string $name): float
+    public function getFloat($key): float
     {
-        return $this->parseFloat($this->getRawValue($name));
+        return $this->parseFloat($this->getRawValue($key));
     }
 
     /** @inheritdoc */
-    public function getString(string $name): string
+    public function getString($key): string
     {
-        return $this->parseString($this->getRawValue($name));
+        return $this->parseString($this->getRawValue($key));
     }
 
     /** @inheritdoc */
-    public function getDateTime(string $name, string $format = null): \DateTimeImmutable
+    public function getDateTime($key, string $format = null): \DateTimeImmutable
     {
-        return $this->parseDateTime($this->getRawValue($name), $format ?? self::DEFAULT_DATETIME_FORMAT);
+        return $this->parseDateTime($this->getRawValue($key), $format ?? self::DEFAULT_DATETIME_FORMAT);
     }
 
     /** @inheritdoc */
-    public function getUuid(string $name): UuidInterface
+    public function getTime($key): Time
     {
-        return $this->parseUuid($this->getRawValue($name));
+        return $this->parseTime($this->getRawValue($key));
     }
 
     /** @inheritdoc */
-    public function getArray(string $name): array
+    public function getUuid($key): UuidInterface
     {
-        return $this->parseArray($this->getRawValue($name));
+        return $this->parseUuid($this->getRawValue($key));
     }
 
     /** @inheritdoc */
-    public function getObject(string $name, string $className = null): object
+    public function getArray($key): array
     {
-        return $this->parseObject($this->getRawValue($name), $className);
+        return $this->parseArray($this->getRawValue($key));
     }
 
     /** @inheritdoc */
-    public function getNullableBool(string $name): ?bool
+    public function getObject($key, string $className = null): object
     {
-        $raw = $this->getRawValue($name);
+        return $this->parseObject($this->getRawValue($key), $className);
+    }
+
+    /** @inheritdoc */
+    public function getNullableBool($key): ?bool
+    {
+        $raw = $this->getRawValue($key);
 
         if ($raw === null || $raw === '') {
             return null;
@@ -263,9 +319,9 @@ final class ValueMap implements DataRecord
     }
 
     /** @inheritdoc */
-    public function getNullableInt(string $name): ?int
+    public function getNullableInt($key): ?int
     {
-        $raw = $this->getRawValue($name);
+        $raw = $this->getRawValue($key);
 
         if ($raw === null || $raw === '') {
             return null;
@@ -275,9 +331,9 @@ final class ValueMap implements DataRecord
     }
 
     /** @inheritdoc */
-    public function getNullableFloat(string $name): ?float
+    public function getNullableFloat($key): ?float
     {
-        $raw = $this->getRawValue($name);
+        $raw = $this->getRawValue($key);
 
         if ($raw === null || $raw === '') {
             return null;
@@ -287,9 +343,9 @@ final class ValueMap implements DataRecord
     }
 
     /** @inheritdoc */
-    public function getNullableString(string $name): ?string
+    public function getNullableString($key): ?string
     {
-        $raw = $this->getRawValue($name);
+        $raw = $this->getRawValue($key);
 
         if ($raw === null) {
             return null;
@@ -299,9 +355,9 @@ final class ValueMap implements DataRecord
     }
 
     /** @inheritdoc */
-    public function getNullableDateTime(string $name, string $format = null): ?\DateTimeImmutable
+    public function getNullableDateTime($key, string $format = null): ?\DateTimeImmutable
     {
-        $raw = $this->getRawValue($name);
+        $raw = $this->getRawValue($key);
 
         if ($raw === null || $raw === '') {
             return null;
@@ -311,9 +367,21 @@ final class ValueMap implements DataRecord
     }
 
     /** @inheritdoc */
-    public function getNullableUuid(string $name): ?UuidInterface
+    public function getNullableTime($key): ?Time
     {
-        $raw = $this->getRawValue($name);
+        $raw = $this->getRawValue($key);
+
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        return $this->parseTime($raw);
+    }
+
+    /** @inheritdoc */
+    public function getNullableUuid($key): ?UuidInterface
+    {
+        $raw = $this->getRawValue($key);
 
         if ($raw === null || $raw === '') {
             return null;
@@ -323,9 +391,9 @@ final class ValueMap implements DataRecord
     }
 
     /** @inheritdoc */
-    public function getNullableArray(string $name): array
+    public function getNullableArray($key): array
     {
-        $raw = $this->getRawValue($name);
+        $raw = $this->getRawValue($key);
 
         if ($raw === null) {
             return null;
@@ -335,9 +403,9 @@ final class ValueMap implements DataRecord
     }
 
     /** @inheritdoc */
-    public function getNullableObject(string $name, string $className = null): ?object
+    public function getNullableObject($key, string $className = null): ?object
     {
-        $raw = $this->getRawValue($name);
+        $raw = $this->getRawValue($key);
 
         if ($raw === null) {
             return null;
@@ -350,5 +418,30 @@ final class ValueMap implements DataRecord
     public function toArray(): array
     {
         return $this->values;
+    }
+
+    public function count(): int
+    {
+        return \count($this->values);
+    }
+
+    /** @inheritdoc */
+    public function getName(int $key): string
+    {
+        if (!isset($this->names[$key])) {
+            throw new InvalidKeyException("Key '{$key}' does not exist in the collection");
+        }
+
+        return $this->names[$key];
+    }
+
+    /** @inheritdoc */
+    public function getOrdinal(string $name): int
+    {
+        if (!isset($this->keysByName[$name])) {
+            throw new InvalidKeyException("Name '{$name}' does not exist in the collection");
+        }
+
+        return $this->keysByName[$name];
     }
 }

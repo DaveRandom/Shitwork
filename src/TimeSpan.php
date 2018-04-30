@@ -12,6 +12,8 @@ final class TimeSpan
     private $seconds;
     private $microseconds;
 
+    private $interval;
+
     /**
      * @throws InvalidFormatException
      * @throws OutOfRangeException
@@ -219,5 +221,21 @@ final class TimeSpan
     public function isValidTimeOfDay(): bool
     {
         return $this->getTotalSeconds() < 86400;
+    }
+
+    public function toDateInterval(): \DateInterval
+    {
+        if (isset($this->interval)) {
+            return $this->interval;
+        }
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $this->interval = new \DateInterval("PT{$this->hours}H{$this->seconds}S");
+
+        $this->interval->h = $this->hours % 24;
+        $this->interval->d = \intdiv($this->hours, 24);
+        $this->interval->f = $this->microseconds / 1000000;
+
+        return $this->interval;
     }
 }

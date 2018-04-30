@@ -89,7 +89,7 @@ final class TimeSpan
      */
     public static function createFromDateTime(\DateTimeInterface $time): self
     {
-        return new self((int)$time->format('H'), (int)$time->format('i'), (int)$time->format('s'));
+        return new self((int)$time->format('H'), (int)$time->format('i'), (int)$time->format('s'), (int)$time->format('u'));
     }
 
     /**
@@ -214,5 +214,10 @@ final class TimeSpan
     public function getTotalMicroseconds(): int
     {
         return ($this->getTotalSeconds() * 1000000) + $this->microseconds;
+    }
+
+    public function isValidTimeOfDay(): bool
+    {
+        return $this->getTotalSeconds() < 86400;
     }
 }

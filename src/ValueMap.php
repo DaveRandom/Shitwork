@@ -147,27 +147,27 @@ final class ValueMap implements DataRecord
     }
 
     /** @throws InvalidFormatException */
-    private function parseTime($value): Time
+    private function parseTime($value): TimeSpan
     {
-        if ($value instanceof Time) {
+        if ($value instanceof TimeSpan) {
             return $value;
         }
 
         try {
             if ($value instanceof \DateTimeInterface) {
-                return Time::createFromDateTime($value);
+                return TimeSpan::createFromDateTime($value);
             }
 
             // int, float and numeric string are treated as number of seconds
             if (\is_numeric($value)) {
-                return Time::createFromSeconds($value);
+                return TimeSpan::createFromSeconds($value);
             }
 
             if (!\is_string($value)) {
                 throw new InvalidFormatException("Cannot convert value of type {$this->describeType($value)} to time");
             }
 
-            return Time::createFromString($value);
+            return TimeSpan::createFromString($value);
         } catch (OutOfRangeException $e) {
             throw new InvalidFormatException("Failed to convert '{$value}' to time: {$e->getMessage()}");
         }
@@ -283,7 +283,7 @@ final class ValueMap implements DataRecord
     }
 
     /** @inheritdoc */
-    public function getTime($key): Time
+    public function getTimeSpan($key): TimeSpan
     {
         return $this->parseTime($this->getRawValue($key));
     }
@@ -367,7 +367,7 @@ final class ValueMap implements DataRecord
     }
 
     /** @inheritdoc */
-    public function getNullableTime($key): ?Time
+    public function getNullableTimeSpan($key): ?TimeSpan
     {
         $raw = $this->getRawValue($key);
 

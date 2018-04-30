@@ -44,7 +44,7 @@ interface DataRecord extends \Countable
      * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    function getTime($key): Time;
+    function getTimeSpan($key): TimeSpan;
 
     /**
      * @throws InvalidKeyException
@@ -98,7 +98,7 @@ interface DataRecord extends \Countable
      * @throws InvalidKeyException
      * @throws InvalidFormatException
      */
-    function getNullableTime($key): ?Time;
+    function getNullableTimeSpan($key): ?TimeSpan;
 
     /**
      * @throws InvalidKeyException

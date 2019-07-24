@@ -33,6 +33,10 @@ function bootstrap(Injector $injector = null): Injector
     $injector = \Shitwork\injector($injector);
 
     return $done ? $injector : $done = $injector
+        ->share(UrlParamCollection::fromAssociativeArray($_GET ?? []))
+        ->share(FormParamCollection::fromAssociativeArray($_POST ?? []))
+        ->share(CookieCollection::fromAssociativeArray($_COOKIE ?? []))
+        ->share(HeaderCollection::createFromSuperglobals())
         ->share(Request::class)
         ->share(Router::class)
         ->share(ScriptCollection::class)

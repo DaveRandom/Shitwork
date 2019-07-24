@@ -114,13 +114,14 @@ final class Request
     /**
      * @throws \Error
      */
-    public function __construct()
+    public function __construct(UrlParamCollection $urlParams, FormParamCollection $formParams, CookieCollection $cookies, HeaderCollection $headers)
     {
-        $this->urlParams = new ValueMap((array)$_GET);
-        $this->formParams = new ValueMap((array)$_POST);
-        $this->cookies = new ValueMap((array)$_COOKIE);
-        $this->files = (array)$_FILES;
-        $this->headers = HeaderCollection::createFromSuperglobals();
+        $this->urlParams = $urlParams;
+        $this->formParams = $formParams;
+        $this->cookies = $cookies;
+        $this->headers = $headers;
+
+        $this->files = (array)$_FILES; // todo
 
         $this->remoteAddr = $_SERVER['REMOTE_ADDR'];
         $this->remotePort = (int)$_SERVER['REMOTE_PORT'];
@@ -296,17 +297,17 @@ final class Request
         return $this->pathParams;
     }
 
-    public function getUrlParams(): DataRecord
+    public function getUrlParams(): UrlParamCollection
     {
         return $this->urlParams;
     }
 
-    public function getFormParams(): DataRecord
+    public function getFormParams(): FormParamCollection
     {
         return $this->formParams;
     }
 
-    public function getCookies(): DataRecord
+    public function getCookies(): CookieCollection
     {
         return $this->cookies;
     }
@@ -333,7 +334,8 @@ final class Request
     }
 
     /**
-     * @throws LogicError
+     * @param string[] $parts
+     * @return string
      */
     private function resolvePartialRedirectUri(array $parts, string $uri): string
     {

@@ -9,24 +9,40 @@ use Shitwork\Exceptions\LogicError;
 use Shitwork\Exceptions\OutOfRangeException;
 use Shitwork\Exceptions\InvalidKeyException;
 
-final class ValueMap implements DataRecord
+class ValueMap implements DataRecord
 {
     private const DEFAULT_DATETIME_FORMAT = 'Y-m-d H:i:s';
 
-    private $values;
+    private $values = [];
     private $names = [];
     private $keysByName = [];
 
-    public function __construct(array $values, array $names = null)
+    private function initFromAssociativeArray(array $data)
     {
-        if ($names === null) {
-            $names = \array_keys($values);
-        } else if (\count($values) !== \count($names)) {
+        $key = 0;
+
+        foreach ($data as $name => $value) {
+            $this->values[$key] = $value;
+            $this->names[$key] = $name;
+            $this->keysByName[$name] = $this->keysByName[$name] ?? $key;
+            $key++;
+        }
+
+        return $this;
+    }
+
+    public static function fromAssociativeArray(array $data)
+    {
+        return (new static([]))->initFromAssociativeArray($data);
+    }
+
+    private function processCtorArgs(array $values, array $names)
+    {
+        if (\count($values) !== \count($names)) {
             throw new LogicError("Number of names must match number of values");
         }
 
         $this->values = \array_values($values);
-
         $key = 0;
 
         foreach ($names as $name) {
@@ -34,6 +50,13 @@ final class ValueMap implements DataRecord
             $this->keysByName[$name] = $this->keysByName[$name] ?? $key;
 
             $key++;
+        }
+    }
+
+    public function __construct(array $values, array $names = null)
+    {
+        if ($values) {
+            $this->processCtorArgs($values, $names ?? \array_keys($values));
         }
     }
 

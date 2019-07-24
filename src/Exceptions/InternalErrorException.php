@@ -2,7 +2,7 @@
 
 namespace Shitwork\Exceptions;
 
-class InternalErrorException extends Exception
+class InternalErrorException extends Exception implements HttpCodeContainer
 {
     public function __construct($message, \Throwable $previous = null)
     {

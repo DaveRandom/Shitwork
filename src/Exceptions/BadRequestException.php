@@ -2,7 +2,7 @@
 
 namespace Shitwork\Exceptions;
 
-class BadRequestException extends Exception
+class BadRequestException extends Exception implements HttpCodeContainer
 {
     public function __construct(string $message, \Throwable $previous = null)
     {

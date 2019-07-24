@@ -2,7 +2,7 @@
 
 namespace Shitwork\Exceptions;
 
-class ForbiddenException extends Exception
+class ForbiddenException extends Exception implements HttpCodeContainer
 {
     public function __construct($message, \Throwable $previous = null)
     {

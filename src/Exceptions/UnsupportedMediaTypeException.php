@@ -2,7 +2,7 @@
 
 namespace Shitwork\Exceptions;
 
-class UnsupportedMediaTypeException extends Exception
+class UnsupportedMediaTypeException extends Exception implements HttpCodeContainer
 {
     public function __construct($message, \Throwable $previous = null)
     {

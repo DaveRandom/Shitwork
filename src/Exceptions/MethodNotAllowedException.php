@@ -2,7 +2,7 @@
 
 namespace Shitwork\Exceptions;
 
-class MethodNotAllowedException extends Exception
+class MethodNotAllowedException extends Exception implements HttpCodeContainer
 {
     public function __construct($message, \Throwable $previous = null)
     {

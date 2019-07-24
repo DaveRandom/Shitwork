@@ -2,7 +2,7 @@
 
 namespace Shitwork\Exceptions;
 
-class NotFoundException extends Exception
+class NotFoundException extends Exception implements HttpCodeContainer
 {
     public function __construct($message, \Throwable $previous = null)
     {

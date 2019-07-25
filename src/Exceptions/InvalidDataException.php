@@ -2,4 +2,4 @@
 
 namespace Shitwork\Exceptions;
 
-class InvalidKeyException extends InvalidDataException { }
+class InvalidDataException extends Exception { }

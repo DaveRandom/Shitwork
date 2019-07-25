@@ -2,4 +2,4 @@
 
 namespace Shitwork\Exceptions;
 
-final class InvalidFormatException extends Exception { }
+class InvalidFormatException extends InvalidValueException { }

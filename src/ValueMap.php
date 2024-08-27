@@ -267,7 +267,7 @@ class ValueMap implements DataRecord
     public function contains(string ...$names): bool
     {
         foreach ($names as $name) {
-            if (!\array_key_exists($name, $this->values)) {
+            if (!\array_key_exists($name, $this->keysByName)) {
                 return false;
             }
         }
